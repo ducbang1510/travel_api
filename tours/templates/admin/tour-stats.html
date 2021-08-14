@@ -1,0 +1,22 @@
+{% extends 'admin/base_site.html' %}
+
+{% block title %}
+    Thống kê
+{% endblock %}
+
+{% block branding %}
+    <h1 id="site-name">
+        <a href="/admin/">Hệ thống quản lý web du lịch</a>
+    </h1>
+{% endblock %}
+
+{% block content %}
+<h1>THỐNG KÊ THÔNG TIN CÁC TOUR</h1>
+<h2>Số lượng tour: {{ tour_count }}</h2>
+<ul>
+{#    {% for c in stats %}#}
+{#    <li><strong>{{ c.subject }}</strong> có {{ c.lesson_count }} bài học#}
+{#    </li>#}
+{#    {% endfor %}#}
+</ul>
+{% endblock %}
