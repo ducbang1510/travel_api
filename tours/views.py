@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
 from .models import *
-from .serializers import TourSerializer, UserSerializer
+from .serializers import *
 
 
 class UserViewSet(viewsets.ViewSet,
@@ -50,3 +50,18 @@ class TourViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
 
         return [permissions.IsAuthenticated()]
+
+
+class ServiceViewSet(viewsets.ModelViewSet):
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class CustomerViewSet(viewsets.ModelViewSet):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer

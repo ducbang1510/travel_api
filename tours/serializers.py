@@ -18,9 +18,21 @@ class UserSerializer(ModelSerializer):
         return user
 
 
+class CustomerSerializer(ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['name', 'gender', 'date_of_birth', 'email', 'phone', 'address', 'avatar']
+
+
 class ServiceSerializer(ModelSerializer):
     class Meta:
         model = Service
+        fields = ['id', 'name']
+
+
+class CategorySerializer(ModelSerializer):
+    class Meta:
+        model = Category
         fields = ['id', 'name']
 
 
