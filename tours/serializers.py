@@ -31,4 +31,4 @@ class TourSerializer(ModelSerializer):
         model = Tour
         fields = ['id', 'tour_name', 'departure', 'depart_date',
                   'duration', 'rating', 'created_date',
-                  'price_of_tour', 'price_of_room', 'category_id', 'service']
+                  'price_of_tour', 'price_of_room', 'category_id', 'service', 'country_id']

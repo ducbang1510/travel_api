@@ -22,20 +22,25 @@ class TourServiceInlineAdmin(admin.StackedInline):
     model = Tour.service.through
 
 
+class TourImageInlineAdmin(admin.StackedInline):
+    model = TourImage
+    fk_name = 'tour'
+
+
 class TourAdmin(admin.ModelAdmin):
     form = TourForm
     list_display = ['tour_name', 'departure', 'depart_date', 'duration', 'rating', 'created_date', 'price_of_tour',
-                    'price_of_room', 'active', 'category']
+                    'price_of_room', 'active', 'category', 'country']
     search_fields = ['tour_name', 'departure', 'depart_date', 'price_of_tour', 'category__name']
-    list_filter = ['tour_name', 'departure', 'depart_date']
-    inlines = [TourServiceInlineAdmin, ]
+    list_filter = ['departure', 'depart_date', 'country', 'category']
+    inlines = [TourServiceInlineAdmin, TourImageInlineAdmin, ]
 
 
 class TourImageAdmin(admin.ModelAdmin):
     readonly_fields = ['picture']
 
     def picture(self, tour_image):
-        return mark_safe("<img src='/static/{img_url}' width=120px />".format(img_url=tour_image.image.name))
+        return mark_safe("<img src='/static/{img_url}' width=480px />".format(img_url=tour_image.image.name))
 
 
 class TravelWebAdminSite(admin.AdminSite):
