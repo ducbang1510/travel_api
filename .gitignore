@@ -114,4 +114,4 @@ dmypy.json
 .pyre/
 
 # image
-static/images/tours/*.jpg
+/tours/static/images/tours
