@@ -44,3 +44,9 @@ class TourSerializer(ModelSerializer):
         fields = ['id', 'tour_name', 'departure', 'depart_date',
                   'duration', 'rating', 'created_date',
                   'price_of_tour', 'price_of_room', 'category_id', 'service', 'country_id']
+
+
+class TourImageSerializer(ModelSerializer):
+    class Meta:
+        model = TourImage
+        fields = '__all__'

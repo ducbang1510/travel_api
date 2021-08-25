@@ -60,8 +60,14 @@ class ServiceViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    pagination_class = None
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+
+
+class TourImageViewSet(viewsets.ModelViewSet):
+    queryset = TourImage.objects.all()
+    serializer_class = TourImageSerializer

@@ -7,6 +7,7 @@ from . import views
 
 router = routers.DefaultRouter()
 router.register('tours', views.TourViewSet)
+router.register('tour-images', views.TourImageViewSet)
 router.register('services', views.ServiceViewSet)
 router.register('categories', views.CategoryViewSet)
 router.register('customers', views.CustomerViewSet)
