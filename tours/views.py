@@ -4,27 +4,37 @@ from rest_framework import viewsets, permissions, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
+from rest_framework.pagination import PageNumberPagination
 from .models import *
 from .serializers import *
 
 
 class UserViewSet(viewsets.ViewSet,
                   generics.CreateAPIView,
-                  generics.RetrieveAPIView):
+                  generics.UpdateAPIView):
     queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
     parser_classes = [MultiPartParser, ]
 
     def get_permissions(self):
-        if self.action == 'retrieve':
+        if self.action == 'current_user':
             return [permissions.IsAuthenticated()]
 
         return [permissions.AllowAny()]
+
+    @action(methods=['get'], detail=False, url_path='current-user')
+    def current_user(self, request):
+        return Response(self.serializer_class(request.user).data)
+
+
+class TourPagination(PageNumberPagination):
+    page_size = 5
 
 
 class TourViewSet(viewsets.ModelViewSet):
     queryset = Tour.objects.filter(active=True)
     serializer_class = TourSerializer
+    pagination_class = TourPagination
 
     @swagger_auto_schema(
         operation_description='This API for hide tour from client',
