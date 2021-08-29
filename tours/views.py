@@ -28,7 +28,7 @@ class UserViewSet(viewsets.ViewSet,
 
 
 class TourPagination(PageNumberPagination):
-    page_size = 5
+    page_size = 8
 
 
 class TourViewSet(viewsets.ModelViewSet):

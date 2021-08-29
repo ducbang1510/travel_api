@@ -43,6 +43,30 @@ class TourImageAdmin(admin.ModelAdmin):
         return mark_safe("<img src='/static/{img_url}' width=480px />".format(img_url=tour_image.image.name))
 
 
+class BlogForm(forms.ModelForm):
+    content = forms.CharField(widget=CKEditorUploadingWidget)
+
+    class Meta:
+        model = Blog
+        fields = '__all__'
+
+
+class BlogAdmin(admin.ModelAdmin):
+    form = BlogForm
+
+
+class CommentForm(forms.ModelForm):
+    content = forms.CharField(widget=CKEditorUploadingWidget)
+
+    class Meta:
+        model = Comment
+        fields = '__all__'
+
+
+class CommentAdmin(admin.ModelAdmin):
+    form = BlogForm
+
+
 class TravelWebAdminSite(admin.AdminSite):
     site_header = 'Hệ thống quản lý web du lịch'
 
@@ -70,7 +94,7 @@ admin_site.register(Service)
 admin_site.register(Category)
 admin_site.register(Country)
 admin_site.register(Invoice)
-admin_site.register(Blog)
-admin_site.register(Comment)
+admin_site.register(Blog, BlogAdmin)
+admin_site.register(Comment, CommentAdmin)
 admin_site.register(User)
 admin_site.register(Permission)
