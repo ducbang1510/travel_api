@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import SearchFilter, OrderingFilter
 from .models import *
 from .serializers import *
 
@@ -28,10 +29,12 @@ class UserViewSet(viewsets.ViewSet,
 
 
 class TourPagination(PageNumberPagination):
-    page_size = 8
+    page_size = 4
 
 
 class TourViewSet(viewsets.ModelViewSet):
+    filter_backends = (SearchFilter, OrderingFilter)
+    search_fields = ['tour_name', 'departure', 'depart_date']
     queryset = Tour.objects.filter(active=True)
     serializer_class = TourSerializer
     pagination_class = TourPagination

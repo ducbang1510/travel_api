@@ -59,6 +59,7 @@ class Tour(models.Model):
     price_of_tour = models.FloatField(null=False, blank=False)
     price_of_room = models.FloatField(null=False, blank=False)
     description = RichTextField(default=None, null=True)
+    image = models.ImageField(upload_to='images/tours/%Y/%m', default=None)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
