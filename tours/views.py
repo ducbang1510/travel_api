@@ -58,12 +58,6 @@ class TourViewSet(viewsets.ModelViewSet):
 
         return Response(data=TourSerializer(t, context={'request': request}).data, status=status.HTTP_200_OK)
 
-    def get_permissions(self):
-        if self.action == 'list':
-            return [permissions.AllowAny()]
-
-        return [permissions.IsAuthenticated()]
-
 
 class ServiceViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
