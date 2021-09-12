@@ -59,12 +59,12 @@ class TourViewSet(viewsets.ModelViewSet):
         return Response(data=TourSerializer(t, context={'request': request}).data, status=status.HTTP_200_OK)
 
 
-class ServiceViewSet(viewsets.ModelViewSet):
+class ServiceViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = None
@@ -75,6 +75,11 @@ class CustomerViewSet(viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
 
 
-class TourImageViewSet(viewsets.ModelViewSet):
+class TourImageViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = TourImage.objects.all()
     serializer_class = TourImageSerializer
+
+
+class BlogViewSet(viewsets.ViewSet, generics.ListAPIView):
+    queryset = Blog.objects.filter(active=True)
+    serializer_class = BlogSerializer

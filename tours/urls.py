@@ -12,6 +12,7 @@ router.register('services', views.ServiceViewSet)
 router.register('categories', views.CategoryViewSet)
 router.register('customers', views.CustomerViewSet)
 router.register('users', views.UserViewSet)
+router.register('blogs', views.BlogViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
