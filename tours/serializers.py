@@ -1,5 +1,7 @@
-from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer
+from rest_framework.serializers import HyperlinkedModelSerializer, \
+    ModelSerializer, SerializerMethodField, DateTimeField
 from .models import *
+from django.conf import settings
 
 
 class UserSerializer(ModelSerializer):
@@ -38,6 +40,17 @@ class CategorySerializer(ModelSerializer):
 
 class TourSerializer(ModelSerializer):
     service = ServiceSerializer(many=True)
+    image = SerializerMethodField()
+
+    def get_image(self, tour):
+        request = self.context['request']
+        name = tour.image.name
+        if name.startswith('static/'):
+            path = '/%s' % name
+        else:
+            path = '/static/%s' % name
+
+        return request.build_absolute_uri(path)
 
     class Meta:
         model = Tour
@@ -52,7 +65,32 @@ class TourImageSerializer(ModelSerializer):
         fields = '__all__'
 
 
+SEARCH_PATTERN = 'src=\"/tours/static/'
+REPLACE_WITH = 'src=\"%s/static/' % settings.SITE_DOMAIN
+
+
 class BlogSerializer(ModelSerializer):
+    content = SerializerMethodField()
+    created_date = DateTimeField(read_only=True, format="%Y-%m-%d")
+    image = SerializerMethodField()
+
+    def get_content(self, blog):
+        text = blog.content
+        if text.find(SEARCH_PATTERN):
+            c = text.replace(SEARCH_PATTERN, REPLACE_WITH)
+
+        return c
+
+    def get_image(self, tour):
+        request = self.context['request']
+        name = tour.image.name
+        if name.startswith('static/'):
+            path = '/%s' % name
+        else:
+            path = '/static/%s' % name
+
+        return request.build_absolute_uri(path)
+
     class Meta:
         model = Blog
         fields = '__all__'

@@ -14,7 +14,7 @@ class ItemBase(models.Model):
 
     name = models.CharField(max_length=255, null=False)
     gender = models.CharField(max_length=20, null=False)
-    date_of_birth = models.DateField(null=False)
+    date_of_birth = models.DateField(null=True, blank=True)
     email = models.EmailField(max_length=254, null=False)
     phone = PhoneField(blank=True, help_text="Contact phone number")
     address = models.TextField(null=True, blank=True)
@@ -102,11 +102,13 @@ class Invoice(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     note = models.TextField(null=True, blank=True)
     tour = models.ForeignKey('Tour', related_name='invoices', null=True, on_delete=models.SET_NULL)
-    customer = models.ForeignKey('Customer', related_name='invoices', null=True, on_delete=models.SET_NULL)
+    # customer = models.ForeignKey('Customer', related_name='invoices', null=True, on_delete=models.SET_NULL)
+    customers = models.ManyToManyField('Customer', related_name='invoices', blank=True, null=True)
 
 
 class Blog(models.Model):
     title = models.CharField(max_length=255, null=False, unique=True)
+    image = models.ImageField(upload_to='images/blogs/%Y/%m', default=None)
     content = RichTextField()
     likes = models.IntegerField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)

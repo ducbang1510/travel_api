@@ -70,7 +70,8 @@ class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView):
     pagination_class = None
 
 
-class CustomerViewSet(viewsets.ModelViewSet):
+class CustomerViewSet(viewsets.ViewSet, generics.ListAPIView,
+                      generics.CreateAPIView):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
 
@@ -80,6 +81,12 @@ class TourImageViewSet(viewsets.ViewSet, generics.ListAPIView):
     serializer_class = TourImageSerializer
 
 
-class BlogViewSet(viewsets.ViewSet, generics.ListAPIView):
+class BlogPagination(PageNumberPagination):
+    page_size = 5
+
+
+class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
+                  generics.RetrieveAPIView):
     queryset = Blog.objects.filter(active=True)
     serializer_class = BlogSerializer
+    pagination_class = BlogPagination
