@@ -115,3 +115,5 @@ dmypy.json
 
 # image
 /tours/static/images/tours
+/tours/static/images/blogs
+/tours/static/images/avatars
