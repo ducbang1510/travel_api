@@ -86,7 +86,7 @@ class BlogPagination(PageNumberPagination):
 
 
 class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
-                  generics.RetrieveAPIView):
+                  generics.RetrieveAPIView, generics.RetrieveUpdateAPIView):
     queryset = Blog.objects.filter(active=True)
     serializer_class = BlogSerializer
     pagination_class = BlogPagination
