@@ -13,6 +13,7 @@ router.register('categories', views.CategoryViewSet)
 router.register('customers', views.CustomerViewSet)
 router.register('users', views.UserViewSet)
 router.register('blogs', views.BlogViewSet)
+router.register('comments', views.CommentViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

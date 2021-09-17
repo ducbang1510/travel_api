@@ -120,3 +120,5 @@ class Comment(models.Model):
     content = RichTextField()
     created_date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, related_name="comments", on_delete=models.SET_NULL, null=True)
+    blog = models.ForeignKey(Blog, related_name="comments", on_delete=models.SET_NULL, null=True)
+    tour = models.ForeignKey(Tour, related_name="comments", on_delete=models.SET_NULL, null=True)

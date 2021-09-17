@@ -90,3 +90,21 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
     queryset = Blog.objects.filter(active=True)
     serializer_class = BlogSerializer
     pagination_class = BlogPagination
+
+    @action(methods=['get'], detail=True, url_path="comments")
+    def get_comments(self, request, pk):
+        comments = Blog.objects.get(pk=pk).comments
+
+        return Response(CommentSerializer(comments, many=True).data,
+                        status=status.HTTP_200_OK)
+
+
+class CommentPagination(PageNumberPagination):
+    page_size = 3
+
+
+class CommentViewSet(viewsets.ViewSet, generics.ListAPIView,
+                     generics.CreateAPIView, generics.RetrieveAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    pagination_class = CommentPagination
