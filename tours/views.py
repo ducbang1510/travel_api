@@ -39,6 +39,12 @@ class TourViewSet(viewsets.ModelViewSet):
     serializer_class = TourSerializer
     pagination_class = TourPagination
 
+    def get_permissions(self):
+        if self.action in ['add_comment', 'rate']:
+            return [permissions.IsAuthenticated()]
+
+        return [permissions.AllowAny()]
+
     @swagger_auto_schema(
         operation_description='This API for hide tour from client',
         response={
@@ -57,6 +63,36 @@ class TourViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return Response(data=TourSerializer(t, context={'request': request}).data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True, url_path='rating')
+    def rate(self, request, pk):
+        try:
+            rating = int(request.data['rating'])
+        except IndexError | ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            r = Rating.objects.create(rate=rating,
+                                      user=request.user,
+                                      tour=self.get_object())
+
+            return Response(RatingSerializer(r).data,
+                            status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True, url_path="add-comment")
+    def add_comment(self, request, pk):
+        content = request.data.get('content')
+        name_author = request.data.get('name_author')
+
+        if content and name_author:
+            c = Comment.objects.create(name_author=name_author,
+                                       content=content,
+                                       tour=self.get_object(),
+                                       user=request.user)
+
+            return Response(CommentSerializer(c).data,
+                            status=status.HTTP_201_CREATED)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class ServiceViewSet(viewsets.ViewSet, generics.ListAPIView):
@@ -91,12 +127,48 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
     serializer_class = BlogSerializer
     pagination_class = BlogPagination
 
+    def get_permissions(self):
+        if self.action in ['add_comment', 'take_action']:
+            return [permissions.IsAuthenticated()]
+
+        return [permissions.AllowAny()]
+
     @action(methods=['get'], detail=True, url_path="comments")
     def get_comments(self, request, pk):
         comments = Blog.objects.get(pk=pk).comments
 
         return Response(CommentSerializer(comments, many=True).data,
                         status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True, url_path='like')
+    def take_action(self, request, pk):
+        try:
+            action_type = int(request.data['type'])
+        except IndexError | ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            action = Action.objects.create(type=action_type,
+                                           user=request.user,
+                                           blog=self.get_object())
+
+            return Response(ActionSerializer(action).data,
+                            status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True, url_path="add-comment")
+    def add_comment(self, request, pk):
+        content = request.data.get('content')
+        name_author = request.data.get('name_author')
+
+        if content and name_author:
+            c = Comment.objects.create(name_author=name_author,
+                                       content=content,
+                                       blog=self.get_object(),
+                                       user=request.user)
+
+            return Response(CommentSerializer(c).data,
+                            status=status.HTTP_201_CREATED)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class CommentPagination(PageNumberPagination):

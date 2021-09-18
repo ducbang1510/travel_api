@@ -102,7 +102,6 @@ class Invoice(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     note = models.TextField(null=True, blank=True)
     tour = models.ForeignKey('Tour', related_name='invoices', null=True, on_delete=models.SET_NULL)
-    # customer = models.ForeignKey('Customer', related_name='invoices', null=True, on_delete=models.SET_NULL)
     customers = models.ManyToManyField('Customer', related_name='invoices', blank=True, null=True)
 
 
@@ -119,6 +118,30 @@ class Comment(models.Model):
     name_author = models.CharField(max_length=255, null=True, blank=True)
     content = RichTextField()
     created_date = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(User, related_name="comments", on_delete=models.SET_NULL, null=True)
-    blog = models.ForeignKey(Blog, related_name="comments", on_delete=models.SET_NULL, null=True)
-    tour = models.ForeignKey(Tour, related_name="comments", on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, related_name="comments", on_delete=models.CASCADE, null=True)
+    blog = models.ForeignKey(Blog, related_name="comments", on_delete=models.CASCADE, null=True)
+    tour = models.ForeignKey(Tour, related_name="comments", on_delete=models.CASCADE, null=True)
+
+
+class ActionBase(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
+class Action(ActionBase):
+    LIKE, UNLIKE = range(2)
+    ACTIONS = [
+        (LIKE, 'like'),
+        (UNLIKE, 'unlike')
+    ]
+    type = models.PositiveSmallIntegerField(choices=ACTIONS, default=LIKE)
+    blog = models.ForeignKey(Blog, related_name="actions", on_delete=models.CASCADE)
+
+
+class Rating(ActionBase):
+    rate = models.PositiveSmallIntegerField(default=0)
+    tour = models.ForeignKey(Tour, related_name="ratings", on_delete=models.CASCADE)

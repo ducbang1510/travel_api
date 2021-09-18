@@ -98,6 +98,19 @@ class BlogSerializer(ModelSerializer):
 
 class CommentSerializer(ModelSerializer):
     created_date = DateTimeField(read_only=True, format="%Y-%m-%d")
+
     class Meta:
         model = Comment
         fields = '__all__'
+
+
+class ActionSerializer(ModelSerializer):
+    class Meta:
+        model = Action
+        fields = ["id", "type", "created_date"]
+
+
+class RatingSerializer(ModelSerializer):
+    class Meta:
+        model = Rating
+        fields = ["id", "rate", "created_date"]

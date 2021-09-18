@@ -54,6 +54,8 @@ class BlogForm(forms.ModelForm):
 class BlogAdmin(admin.ModelAdmin):
     form = BlogForm
 
+    list_display = ['title', 'created_date']
+
 
 class CommentForm(forms.ModelForm):
     content = forms.CharField(widget=CKEditorUploadingWidget)
@@ -64,7 +66,11 @@ class CommentForm(forms.ModelForm):
 
 
 class CommentAdmin(admin.ModelAdmin):
-    form = BlogForm
+    form = CommentForm
+
+
+class CustomerAdmin(admin.ModelAdmin):
+    list_display = ['name', 'gender', 'email', 'phone']
 
 
 class TravelWebAdminSite(admin.AdminSite):
@@ -86,7 +92,7 @@ class TravelWebAdminSite(admin.AdminSite):
 admin_site = TravelWebAdminSite(name='mytour')
 
 admin_site.register(Tour, TourAdmin)
-admin_site.register(Customer)
+admin_site.register(Customer, CustomerAdmin)
 admin_site.register(Staff)
 admin_site.register(Age)
 admin_site.register(TourImage, TourImageAdmin)

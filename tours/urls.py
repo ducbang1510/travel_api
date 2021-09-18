@@ -6,14 +6,14 @@ from .admin import admin_site
 from . import views
 
 router = routers.DefaultRouter()
-router.register('tours', views.TourViewSet)
+router.register('tours', views.TourViewSet, 'tour')
 router.register('tour-images', views.TourImageViewSet)
-router.register('services', views.ServiceViewSet)
-router.register('categories', views.CategoryViewSet)
-router.register('customers', views.CustomerViewSet)
-router.register('users', views.UserViewSet)
-router.register('blogs', views.BlogViewSet)
-router.register('comments', views.CommentViewSet)
+router.register('services', views.ServiceViewSet, 'service')
+router.register('categories', views.CategoryViewSet, 'category')
+router.register('customers', views.CustomerViewSet, 'customer')
+router.register('users', views.UserViewSet, 'user')
+router.register('blogs', views.BlogViewSet, 'blog')
+router.register('comments', views.CommentViewSet, 'comments')
 
 urlpatterns = [
     path('', include(router.urls)),
