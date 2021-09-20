@@ -38,9 +38,6 @@ class Age(models.Model):
 
 
 class Customer(ItemBase):
-    class Meta:
-        unique_together = ('email', 'phone', 'avatar')
-
     avatar = models.ImageField(upload_to='images/avatars/%Y/%m', null=True, default=None)
     age = models.ForeignKey('Age', related_name='customers', on_delete=models.SET_NULL, null=True)
 
