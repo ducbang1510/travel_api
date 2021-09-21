@@ -69,8 +69,15 @@ class CommentAdmin(admin.ModelAdmin):
     form = CommentForm
 
 
+class CustomerForm(forms.ModelForm):
+    class Meta:
+        model = Customer
+        fields = '__all__'
+
+
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ['name', 'gender', 'email', 'phone']
+    form = CustomerForm
 
 
 class TravelWebAdminSite(admin.AdminSite):
@@ -100,6 +107,7 @@ admin_site.register(Service)
 admin_site.register(Category)
 admin_site.register(Country)
 admin_site.register(Invoice)
+admin_site.register(Payer)
 admin_site.register(Blog, BlogAdmin)
 admin_site.register(Comment, CommentAdmin)
 admin_site.register(User)

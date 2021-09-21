@@ -16,7 +16,7 @@ class ItemBase(models.Model):
     gender = models.CharField(max_length=20, null=False)
     date_of_birth = models.DateField(null=True, blank=True)
     email = models.EmailField(max_length=254, null=False)
-    phone = PhoneField(blank=True, help_text="Contact phone number")
+    phone = models.CharField(max_length=255, null=False)
     address = models.TextField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
@@ -35,11 +35,6 @@ class Staff(ItemBase):
 class Age(models.Model):
     age = models.CharField(max_length=255, unique=True, null=False)
     description = models.TextField(null=True, blank=True)
-
-
-class Customer(ItemBase):
-    avatar = models.ImageField(upload_to='images/avatars/%Y/%m', null=True, default=None)
-    age = models.ForeignKey('Age', related_name='customers', on_delete=models.SET_NULL, null=True)
 
 
 class Tour(models.Model):
@@ -94,14 +89,6 @@ class Country(models.Model):
         return self.name
 
 
-class Invoice(models.Model):
-    total_amount = models.FloatField(null=True, blank=True)
-    created_date = models.DateTimeField(auto_now_add=True)
-    note = models.TextField(null=True, blank=True)
-    tour = models.ForeignKey('Tour', related_name='invoices', null=True, on_delete=models.SET_NULL)
-    customers = models.ManyToManyField('Customer', related_name='invoices', blank=True, null=True)
-
-
 class Blog(models.Model):
     title = models.CharField(max_length=255, null=False, unique=True)
     image = models.ImageField(upload_to='images/blogs/%Y/%m', default=None)
@@ -142,3 +129,30 @@ class Action(ActionBase):
 class Rating(ActionBase):
     rate = models.PositiveSmallIntegerField(default=0)
     tour = models.ForeignKey(Tour, related_name="ratings", on_delete=models.CASCADE)
+
+
+# Thông tin khách hàng
+class Customer(ItemBase):
+    avatar = models.ImageField(upload_to='images/avatars/%Y/%m', null=True, default=None)
+    age = models.ForeignKey('Age', related_name='customers', on_delete=models.SET_NULL, null=True)
+    payer = models.ForeignKey('Payer', related_name='customers', on_delete=models.SET_NULL, null=True)
+
+
+# Thông tin liên hệ của người thanh toán
+class Payer(models.Model):
+    name = models.CharField(max_length=255, null=False)
+    email = models.EmailField(max_length=254, null=False)
+    phone = models.CharField(max_length=255, null=False)
+    address = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+# Thông tin hóa đơn
+class Invoice(models.Model):
+    total_amount = models.FloatField(null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    note = models.TextField(null=True, blank=True)
+    tour = models.ForeignKey('Tour', related_name='invoices', null=True, on_delete=models.SET_NULL)
+    payer = models.ForeignKey('Payer', related_name='invoices', on_delete=models.SET_NULL, null=True)
