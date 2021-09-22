@@ -81,11 +81,9 @@ class TourViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=True, url_path="add-comment")
     def add_comment(self, request, pk):
         content = request.data.get('content')
-        name_author = request.data.get('name_author')
 
-        if content and name_author:
-            c = Comment.objects.create(name_author=name_author,
-                                       content=content,
+        if content:
+            c = Comment.objects.create(content=content,
                                        tour=self.get_object(),
                                        user=request.user)
 
@@ -104,12 +102,6 @@ class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = None
-
-
-class CustomerViewSet(viewsets.ViewSet, generics.ListAPIView,
-                      generics.CreateAPIView):
-    queryset = Customer.objects.all()
-    serializer_class = CustomerSerializer
 
 
 class TourImageViewSet(viewsets.ViewSet, generics.ListAPIView):
@@ -157,11 +149,9 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
     @action(methods=['post'], detail=True, url_path="add-comment")
     def add_comment(self, request, pk):
         content = request.data.get('content')
-        name_author = request.data.get('name_author')
 
-        if content and name_author:
-            c = Comment.objects.create(name_author=name_author,
-                                       content=content,
+        if content:
+            c = Comment.objects.create(content=content,
                                        blog=self.get_object(),
                                        user=request.user)
 
@@ -180,3 +170,51 @@ class CommentViewSet(viewsets.ViewSet, generics.ListAPIView,
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     pagination_class = CommentPagination
+
+
+class CustomerViewSet(viewsets.ViewSet, generics.ListAPIView,
+                      generics.CreateAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+
+
+class PayerViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.ListAPIView):
+    serializer_class = PayerSerializer
+    queryset = Payer.objects.all()
+
+    @action(methods=['post'], detail=True, url_path="add-customer")
+    def add_customer(self, request, pk):
+        name = request.data.get('name')
+        gender = request.data.get('gender')
+        email = request.data.get('email')
+        phone = request.data.get('phone')
+        address = request.data.get('address')
+
+        if name and gender and phone and address and email:
+            c = Customer.objects.create(name=name, gender=gender, address=address, phone=phone, email=email
+                                        , payer=self.get_object())
+
+            return Response(CustomerSerializer(c).data,
+                            status=status.HTTP_201_CREATED)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'], detail=True, url_path="add-invoice")
+    def add_invoice(self, request, pk):
+        total_amount = request.data.get('total_amount')
+        tour_id = request.data.get('tour_id')
+        tour = Tour.objects.get(pk=tour_id)
+        # note = request.data.get('note')
+
+        if total_amount:
+            inv = Invoice.objects.create(total_amount=total_amount, payer=self.get_object(), tour=tour)
+
+            return Response(InvoiceSerializer(inv).data,
+                            status=status.HTTP_201_CREATED)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class InvoiceViewSet(viewsets.ViewSet, generics.ListAPIView):
+    serializer_class = InvoiceSerializer
+    queryset = Invoice.objects.all()

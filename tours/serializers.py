@@ -26,6 +26,18 @@ class CustomerSerializer(ModelSerializer):
         fields = ['name', 'gender', 'date_of_birth', 'email', 'phone', 'address', 'avatar']
 
 
+class PayerSerializer(ModelSerializer):
+    class Meta:
+        model = Payer
+        fields = '__all__'
+
+
+class InvoiceSerializer(ModelSerializer):
+    class Meta:
+        model = Invoice
+        fields = '__all__'
+
+
 class ServiceSerializer(ModelSerializer):
     class Meta:
         model = Service

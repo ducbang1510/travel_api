@@ -1,6 +1,5 @@
 from ckeditor.fields import RichTextField
 from django.db import models
-from phone_field import PhoneField
 from django.contrib.auth.models import AbstractUser
 
 
@@ -99,7 +98,6 @@ class Blog(models.Model):
 
 
 class Comment(models.Model):
-    name_author = models.CharField(max_length=255, null=True, blank=True)
     content = RichTextField()
     created_date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, related_name="comments", on_delete=models.CASCADE, null=True)
