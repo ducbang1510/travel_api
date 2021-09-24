@@ -7,6 +7,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.views import APIView
+from django.db.models import Q
 
 from .models import *
 from .serializers import *
@@ -106,11 +107,31 @@ class TourViewSet(viewsets.ModelViewSet):
 
         q = self.request.query_params.get('q')
         if q is not None:
-            tours = tours.filter(subject__icontains=q)
+            tours = tours.filter(tour_name__icontains=q)
 
         cate_id = self.request.query_params.get('category_id')
         if cate_id is not None:
             tours = tours.filter(category_id=cate_id)
+
+        max_price = self.request.query_params.get('max')
+        min_price = self.request.query_params.get('min')
+        if max_price is not None:
+            tours = tours.filter(price_of_tour__lte=max_price)
+        if min_price is not None:
+            tours = tours.filter(price_of_tour__gte=min_price)
+
+        depart_date = self.request.query_params.get('date')
+        if depart_date is not None:
+            tours = tours.filter(depart_date=depart_date)
+
+        min_d = self.request.query_params.get('min_d')
+        max_d = self.request.query_params.get('max_d')
+        if min_d is not None and max_d is not None:
+            tours = tours.filter(Q(duration__startswith=min_d) | Q(duration__startswith=max_d))
+
+        rate = self.request.query_params.get('rate')
+        if rate is not None:
+            tours = tours.filter(rating=rate)
 
         return tours
 
