@@ -14,9 +14,10 @@ router.register('customers', views.CustomerViewSet, 'customer')
 router.register('payers', views.PayerViewSet, 'payer')
 router.register('users', views.UserViewSet, 'user')
 router.register('blogs', views.BlogViewSet, 'blog')
-router.register('comments', views.CommentViewSet, 'comments')
+router.register('comments', views.CommentViewSet, 'comment')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('admin/', admin_site.urls)
+    path('admin/', admin_site.urls),
+    path('oauth2-info/', views.AuthInfo.as_view())
 ]

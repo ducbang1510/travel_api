@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.views import APIView
+
 from .models import *
 from .serializers import *
 
@@ -29,7 +31,7 @@ class UserViewSet(viewsets.ViewSet,
 
 
 class TourPagination(PageNumberPagination):
-    page_size = 4
+    page_size = 6
 
 
 class TourViewSet(viewsets.ModelViewSet):
@@ -92,6 +94,26 @@ class TourViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    @action(methods=['get'], detail=True, url_path="comments")
+    def get_comments(self, request, pk):
+        comments = Tour.objects.get(pk=pk).comments.order_by("-id").all()
+
+        return Response(CommentSerializer(comments, many=True).data,
+                        status=status.HTTP_200_OK)
+
+    def get_queryset(self):
+        tours = Tour.objects.filter(active=True)
+
+        q = self.request.query_params.get('q')
+        if q is not None:
+            tours = tours.filter(subject__icontains=q)
+
+        cate_id = self.request.query_params.get('category_id')
+        if cate_id is not None:
+            tours = tours.filter(category_id=cate_id)
+
+        return tours
+
 
 class ServiceViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = Service.objects.all()
@@ -127,7 +149,7 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
 
     @action(methods=['get'], detail=True, url_path="comments")
     def get_comments(self, request, pk):
-        comments = Blog.objects.get(pk=pk).comments
+        comments = Blog.objects.get(pk=pk).comments.order_by("-id").all()
 
         return Response(CommentSerializer(comments, many=True).data,
                         status=status.HTTP_200_OK)
@@ -218,3 +240,8 @@ class PayerViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.ListAPIVie
 class InvoiceViewSet(viewsets.ViewSet, generics.ListAPIView):
     serializer_class = InvoiceSerializer
     queryset = Invoice.objects.all()
+
+
+class AuthInfo(APIView):
+    def get(self, request):
+        return Response(settings.OAUTH2_INFO, status=status.HTTP_200_OK)

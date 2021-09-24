@@ -55,6 +55,7 @@ class BlogAdmin(admin.ModelAdmin):
     form = BlogForm
 
     list_display = ['title', 'created_date']
+    search_fields = ['title', 'created_date']
 
 
 class CommentForm(forms.ModelForm):
@@ -78,6 +79,12 @@ class CustomerForm(forms.ModelForm):
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ['name', 'gender', 'email', 'phone']
     form = CustomerForm
+    search_fields = ['name', 'email', 'address']
+
+
+class PayerAdmin(admin.ModelAdmin):
+    list_display = ['name', 'email', 'phone']
+    search_fields = ['name', 'email', 'phone', 'address']
 
 
 class TravelWebAdminSite(admin.AdminSite):
@@ -107,7 +114,7 @@ admin_site.register(Service)
 admin_site.register(Category)
 admin_site.register(Country)
 admin_site.register(Invoice)
-admin_site.register(Payer)
+admin_site.register(Payer, PayerAdmin)
 admin_site.register(Blog, BlogAdmin)
 admin_site.register(Comment, CommentAdmin)
 admin_site.register(User)
