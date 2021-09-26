@@ -4,13 +4,17 @@ from rest_framework import viewsets, permissions, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.views import APIView
 from django.db.models import Q
+import urllib
+import uuid
+import hmac
+import hashlib
 
 from .models import *
 from .serializers import *
+from .paginator import *
 
 
 class UserViewSet(viewsets.ViewSet,
@@ -29,10 +33,6 @@ class UserViewSet(viewsets.ViewSet,
     @action(methods=['get'], detail=False, url_path='current-user')
     def current_user(self, request):
         return Response(self.serializer_class(request.user).data)
-
-
-class TourPagination(PageNumberPagination):
-    page_size = 6
 
 
 class TourViewSet(viewsets.ModelViewSet):
@@ -150,10 +150,16 @@ class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView):
 class TourImageViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = TourImage.objects.all()
     serializer_class = TourImageSerializer
+    pagination_class = TourImagePagination
 
+    def get_queryset(self):
+        list_images = TourImage.objects.all()
+        tour_id = self.request.query_params.get('tour_id')
 
-class BlogPagination(PageNumberPagination):
-    page_size = 5
+        if tour_id is not None:
+            list_images = list_images.filter(tour_id=tour_id)
+
+        return list_images
 
 
 class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
@@ -186,6 +192,9 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
                                            user=request.user,
                                            blog=self.get_object())
 
+            count_like = Blog.objects.get(pk=pk).actions.filter(type=1).count()
+            Blog.objects.filter(pk=pk).update(likes=count_like)
+
             return Response(ActionSerializer(action).data,
                             status=status.HTTP_200_OK)
 
@@ -202,10 +211,6 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
                             status=status.HTTP_201_CREATED)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-class CommentPagination(PageNumberPagination):
-    page_size = 3
 
 
 class CommentViewSet(viewsets.ViewSet, generics.ListAPIView,
@@ -257,10 +262,67 @@ class PayerViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.ListAPIVie
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    # @action(methods=['post'], detail=True, url_path="payment")
+    # def payment(self, request, pk):
+    #     partnerCode = "MOMO3LYS20210822"
+    #     accessKey = "H9FWxUZYXUcnjZ0E"
+    #     secretKey = "YnAUyGXAR5iQ7SibCCtmHcnyk9lHitIN"
+    #     amount = request.data.get('total_amount')
+    #     orderInfo = "pay with MoMo"
+    #     redirectUrl = "http://localhost:3000/"
+    #     ipnUrl = "http://localhost:3000/"
+    #     orderId = str(uuid.uuid4())
+    #     requestId = str(uuid.uuid4())
+    #     requestType = "captureWallet"
+    #     extraData = ""
+    #
+    #     rawSignature = "accessKey=" + accessKey + "&amount=" + amount \
+    #                    + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo \
+    #                    + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId \
+    #                    + "&requestType=" + requestType
+    #
+    #     h = hmac.new(secretKey, rawSignature, hashlib.sha256)
+    #     signature = h.hexdigest()
+    #
+    #     # json object send to MoMo endpoint
+    #
+    #     data = {
+    #         'partnerCode': partnerCode,
+    #         'partnerName': "Test",
+    #         'storeId': "MomoTestStore",
+    #         'requestId': requestId,
+    #         'amount': amount,
+    #         'orderId': orderId,
+    #         'orderInfo': orderInfo,
+    #         'redirectUrl': redirectUrl,
+    #         'ipnUrl': ipnUrl,
+    #         'lang': "vi",
+    #         'extraData': extraData,
+    #         'requestType': requestType,
+    #         'signature': signature
+    #     }
+    #     pass
+
 
 class InvoiceViewSet(viewsets.ViewSet, generics.ListAPIView):
     serializer_class = InvoiceSerializer
     queryset = Invoice.objects.all()
+
+
+class ActionViewSet(viewsets.ViewSet, generics.ListAPIView):
+    serializer_class = ActionSerializer
+    queryset = Action.objects.all()
+
+    def get_queryset(self):
+        action = Action.objects.all()
+        user_id = self.request.query_params.get('user_id')
+        blog_id = self.request.query_params.get('blog_id')
+        if user_id is not None:
+            action = Action.objects.filter(user_id=user_id)
+        if blog_id is not None:
+            action = Action.objects.filter(blog_id=blog_id)
+
+        return action
 
 
 class AuthInfo(APIView):

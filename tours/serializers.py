@@ -72,6 +72,18 @@ class TourSerializer(ModelSerializer):
 
 
 class TourImageSerializer(ModelSerializer):
+    image = SerializerMethodField()
+
+    def get_image(self, tour):
+        request = self.context['request']
+        name = tour.image.name
+        if name.startswith('static/'):
+            path = '/%s' % name
+        else:
+            path = '/static/%s' % name
+
+        return request.build_absolute_uri(path)
+
     class Meta:
         model = TourImage
         fields = '__all__'
@@ -119,7 +131,7 @@ class CommentSerializer(ModelSerializer):
 class ActionSerializer(ModelSerializer):
     class Meta:
         model = Action
-        fields = ["id", "type", "created_date"]
+        fields = ["id", "type", "created_date", "user_id", "blog_id"]
 
 
 class RatingSerializer(ModelSerializer):

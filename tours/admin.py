@@ -5,6 +5,8 @@ from django.contrib.auth.models import Permission
 from django.template.response import TemplateResponse
 from django.utils.safestring import mark_safe
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
+from django.db.models.functions import ExtractDay, ExtractYear, ExtractMonth
+import calendar
 
 from .models import *
 
@@ -87,6 +89,28 @@ class PayerAdmin(admin.ModelAdmin):
     search_fields = ['name', 'email', 'phone', 'address']
 
 
+def report_invoice(month, year=None, day=None):
+    tong = 0
+    if day:
+        invoices = Invoice.objects.annotate(day=ExtractDay('created_date'), month=ExtractMonth('created_date'),
+                                            year=ExtractYear('created_date')).values('id', 'total_amount', 'tour_id',
+                                                                                     'payer_id', 'day', 'month',
+                                                                                     'year').filter(day=day,
+                                                                                                    month=month,
+                                                                                                    year=year)
+    else:
+        invoices = Invoice.objects.annotate(month=ExtractMonth('created_date'),
+                                            year=ExtractYear('created_date')).values('id', 'total_amount', 'tour_id',
+                                                                                     'payer_id', 'month',
+                                                                                     'year').filter(month=month,
+                                                                                                    year=year)
+
+    for i in invoices:
+        tong = tong + float(i['total_amount'])
+
+    return tong
+
+
 class TravelWebAdminSite(admin.AdminSite):
     site_header = 'Hệ thống quản lý web du lịch'
 
@@ -96,10 +120,39 @@ class TravelWebAdminSite(admin.AdminSite):
         ] + super().get_urls()
 
     def tour_stats(self, request):
-        tour_count = Tour.objects.count()
+        tours = Tour.objects.filter(active=True)
+        data = []
+        label = []
+        lx = 'Ngày'
+        if request.method == 'POST':
+            year = request.POST.get('year', '')
+            month = request.POST.get('month', '')
+            if month:
+                lx = 'Ngày'
+                p = calendar.monthrange(int(year), int(month))
+                for i in range(1, p[1] + 1):
+                    data.append(report_invoice(month, year=year, day=i))
+                    label.append(i)
+            else:
+                lx = 'Tháng'
+                for i in range(1, 13):
+                    data.append(report_invoice(i, year=year))
+                    label.append(i)
+
+            m = int(max(data))
+            a = list(str(m))
+            for i in range(0, len(a)):
+                if i == 0:
+                    a[i] = str(int(a[i]) + 1)
+                else:
+                    a[i] = '0'
+            c = int(''.join(a))
+            return TemplateResponse(request, 'admin/tour-stats.html', {
+                'tours': tours, 'data': data, 'c': c, 'label': label, 'month': month, 'year': year, 'lx': lx,
+            })
 
         return TemplateResponse(request, 'admin/tour-stats.html', {
-            'tour_count': tour_count,
+            'tours': tours, 'data': data, 'c': 0, 'label': label, 'lx': lx,
         })
 
 
@@ -108,7 +161,6 @@ admin_site = TravelWebAdminSite(name='mytour')
 admin_site.register(Tour, TourAdmin)
 admin_site.register(Customer, CustomerAdmin)
 admin_site.register(Staff)
-admin_site.register(Age)
 admin_site.register(TourImage, TourImageAdmin)
 admin_site.register(Service)
 admin_site.register(Category)

@@ -31,14 +31,6 @@ class Staff(ItemBase):
     avatar = models.ImageField(upload_to='images/avatars/%Y/%m', null=True, default=None)
 
 
-class Age(models.Model):
-    age = models.CharField(max_length=255, unique=True, null=False)
-    description = models.TextField(null=True, blank=True)
-
-    def __str__(self):
-        return self.age
-
-
 class Tour(models.Model):
     class Meta:
         unique_together = ('tour_name', 'category')
@@ -134,8 +126,13 @@ class Rating(ActionBase):
 
 # Thông tin khách hàng
 class Customer(ItemBase):
+    ADULT, CHILD = range(2)
+    AGES = [
+        (ADULT, 'adult'),
+        (CHILD, 'child')
+    ]
     avatar = models.ImageField(upload_to='images/avatars/%Y/%m', null=True, default=None)
-    age = models.ForeignKey('Age', related_name='customers', on_delete=models.SET_NULL, null=True)
+    age = models.PositiveSmallIntegerField(choices=AGES, default=ADULT)
     payer = models.ForeignKey('Payer', related_name='customers', on_delete=models.SET_NULL, null=True)
 
 
