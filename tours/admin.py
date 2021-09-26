@@ -56,8 +56,8 @@ class BlogForm(forms.ModelForm):
 class BlogAdmin(admin.ModelAdmin):
     form = BlogForm
 
-    list_display = ['title', 'created_date']
-    search_fields = ['title', 'created_date']
+    list_display = ['title', 'author', 'created_date']
+    search_fields = ['title', 'author', 'created_date']
 
 
 class CommentForm(forms.ModelForm):
@@ -169,5 +169,6 @@ admin_site.register(Invoice)
 admin_site.register(Payer, PayerAdmin)
 admin_site.register(Blog, BlogAdmin)
 admin_site.register(Comment, CommentAdmin)
+admin_site.register(Rating)
 admin_site.register(User)
 admin_site.register(Permission)

@@ -5,6 +5,18 @@ from django.conf import settings
 
 
 class UserSerializer(ModelSerializer):
+    avatar = SerializerMethodField()
+
+    def get_avatar(self, user):
+        request = self.context['request']
+        name = user.avatar.name
+        if name.startswith('static/'):
+            path = '/%s' % name
+        else:
+            path = '/static/%s' % name
+
+        return request.build_absolute_uri(path)
+
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'email', 'username', 'password', 'avatar']
@@ -122,10 +134,14 @@ class BlogSerializer(ModelSerializer):
 
 class CommentSerializer(ModelSerializer):
     created_date = DateTimeField(read_only=True, format="%Y-%m-%d")
+    user = SerializerMethodField()
+
+    def get_user(self, comment):
+        return UserSerializer(comment.user, context={"request": self.context.get('request')}).data
 
     class Meta:
         model = Comment
-        fields = '__all__'
+        fields = ['id', 'content', 'created_date', 'user']
 
 
 class ActionSerializer(ModelSerializer):

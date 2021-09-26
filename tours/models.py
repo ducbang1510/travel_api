@@ -86,6 +86,7 @@ class Country(models.Model):
 class Blog(models.Model):
     title = models.CharField(max_length=255, null=False, unique=True)
     image = models.ImageField(upload_to='images/blogs/%Y/%m', default=None)
+    author = models.CharField(max_length=100, null=True, default=None)
     content = RichTextField()
     likes = models.IntegerField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)

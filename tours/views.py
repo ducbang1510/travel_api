@@ -32,7 +32,8 @@ class UserViewSet(viewsets.ViewSet,
 
     @action(methods=['get'], detail=False, url_path='current-user')
     def current_user(self, request):
-        return Response(self.serializer_class(request.user).data)
+        return Response(self.serializer_class(request.user, context={"request": request}).data,
+                        status=status.HTTP_200_OK)
 
 
 class TourViewSet(viewsets.ModelViewSet):
@@ -77,6 +78,14 @@ class TourViewSet(viewsets.ModelViewSet):
             r = Rating.objects.create(rate=rating,
                                       user=request.user,
                                       tour=self.get_object())
+
+            count_rating = Tour.objects.get(pk=pk).ratings.count()
+            rates = Tour.objects.get(pk=pk).ratings.values('rate').all()
+            total = 0
+            for i in rates:
+                total = total + int(i['rate'])
+            rate_range = int(total / count_rating)
+            Tour.objects.filter(pk=pk).update(rating=rate_range)
 
             return Response(RatingSerializer(r).data,
                             status=status.HTTP_200_OK)
@@ -176,10 +185,10 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
 
     @action(methods=['get'], detail=True, url_path="comments")
     def get_comments(self, request, pk):
-        comments = Blog.objects.get(pk=pk).comments.order_by("-id").all()
-
-        return Response(CommentSerializer(comments, many=True).data,
-                        status=status.HTTP_200_OK)
+        c = self.get_object()
+        return Response(
+            CommentSerializer(c.comments.order_by("-id").all(), many=True, context={"request": self.request}).data,
+            status=status.HTTP_200_OK)
 
     @action(methods=['post'], detail=True, url_path='like')
     def take_action(self, request, pk):
@@ -212,12 +221,37 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    def get_queryset(self):
+        blogs = Blog.objects.filter(active=True)
 
-class CommentViewSet(viewsets.ViewSet, generics.ListAPIView,
-                     generics.CreateAPIView, generics.RetrieveAPIView):
+        q = self.request.query_params.get('q')
+        if q is not None:
+            blogs = blogs.filter(title__icontains=q)
+
+        author = self.request.query_params.get('author')
+        if author is not None:
+            blogs = blogs.filter(author__icontains=author)
+
+        return blogs
+
+
+class CommentViewSet(viewsets.ViewSet, generics.DestroyAPIView,
+                     generics.UpdateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    pagination_class = CommentPagination
+    permission_classes = [permissions.IsAuthenticated]
+
+    def destroy(self, request, *args, **kwargs):
+        if request.user == self.get_object().creator:
+            return super().destroy(request, *args, **kwargs)
+
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    def partial_update(self, request, *args, **kwargs):
+        if request.user == self.get_object().creator:
+            return super().partial_update(request, *args, **kwargs)
+
+        return Response(status=status.HTTP_403_FORBIDDEN)
 
 
 class CustomerViewSet(viewsets.ViewSet, generics.ListAPIView,
