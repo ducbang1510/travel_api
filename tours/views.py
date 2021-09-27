@@ -111,6 +111,14 @@ class TourViewSet(viewsets.ModelViewSet):
         return Response(CommentSerializer(comments, many=True).data,
                         status=status.HTTP_200_OK)
 
+    @action(methods=['get'], detail=False, url_path="popular")
+    def get_popular_tour(self, request):
+        tours = Tour.objects.all().order_by("-rating")[:3]
+
+        return Response(
+            TourSerializer(tours, many=True, context={"request": self.request}).data,
+            status=status.HTTP_200_OK)
+
     def get_queryset(self):
         tours = Tour.objects.filter(active=True)
 
@@ -188,6 +196,14 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
         c = self.get_object()
         return Response(
             CommentSerializer(c.comments.order_by("-id").all(), many=True, context={"request": self.request}).data,
+            status=status.HTTP_200_OK)
+
+    @action(methods=['get'], detail=False, url_path="newest")
+    def get_newest_blog(self, request):
+        blogs = Blog.objects.all().order_by("-created_date")[:3]
+
+        return Response(
+            BlogSerializer(blogs, many=True, context={"request": self.request}).data,
             status=status.HTTP_200_OK)
 
     @action(methods=['post'], detail=True, url_path='like')
