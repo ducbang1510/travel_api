@@ -65,6 +65,16 @@ class CategorySerializer(ModelSerializer):
 class TourSerializer(ModelSerializer):
     service = ServiceSerializer(many=True)
     image = SerializerMethodField()
+    rate = SerializerMethodField()
+
+    def get_rate(self, tour):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            r = tour.ratings.filter(user=request.user).first()
+            if r:
+                return r.rate
+
+        return -1
 
     def get_image(self, tour):
         request = self.context['request']
@@ -80,7 +90,7 @@ class TourSerializer(ModelSerializer):
         model = Tour
         fields = ['id', 'tour_name', 'departure', 'depart_date',
                   'duration', 'rating', 'created_date', 'tour_plan', 'description',
-                  'price_of_tour', 'price_of_room', 'image', 'category_id', 'service', 'country_id']
+                  'price_of_tour', 'price_of_room', 'image', 'category_id', 'service', 'country_id', "rate"]
 
 
 class TourImageSerializer(ModelSerializer):
@@ -109,6 +119,16 @@ class BlogSerializer(ModelSerializer):
     content = SerializerMethodField()
     created_date = DateTimeField(read_only=True, format="%Y-%m-%d")
     image = SerializerMethodField()
+    type = SerializerMethodField()
+
+    def get_type(self, blog):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            t = blog.actions.filter(user=request.user).first()
+            if t:
+                return t.type
+
+        return -1
 
     def get_content(self, blog):
         text = blog.content
@@ -129,7 +149,7 @@ class BlogSerializer(ModelSerializer):
 
     class Meta:
         model = Blog
-        fields = '__all__'
+        fields = ['id', 'title', 'image', 'author', 'content', 'likes', 'created_date', 'type']
 
 
 class CommentSerializer(ModelSerializer):

@@ -119,10 +119,17 @@ class Action(ActionBase):
     type = models.PositiveSmallIntegerField(choices=ACTIONS, default=LIKE)
     blog = models.ForeignKey(Blog, related_name="actions", on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = ("blog", "user")
+
 
 class Rating(ActionBase):
     rate = models.PositiveSmallIntegerField(default=0)
     tour = models.ForeignKey(Tour, related_name="ratings", on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("tour", "user")
+        ordering = ["-id"]
 
 
 # Thông tin khách hàng

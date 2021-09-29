@@ -37,8 +37,6 @@ class UserViewSet(viewsets.ViewSet,
 
 
 class TourViewSet(viewsets.ModelViewSet):
-    filter_backends = (SearchFilter, OrderingFilter)
-    search_fields = ['tour_name', 'departure', 'depart_date']
     queryset = Tour.objects.filter(active=True)
     serializer_class = TourSerializer
     pagination_class = TourPagination
@@ -75,17 +73,17 @@ class TourViewSet(viewsets.ModelViewSet):
         except IndexError | ValueError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         else:
-            r = Rating.objects.create(rate=rating,
-                                      user=request.user,
-                                      tour=self.get_object())
-
-            count_rating = Tour.objects.get(pk=pk).ratings.count()
-            rates = Tour.objects.get(pk=pk).ratings.values('rate').all()
-            total = 0
-            for i in rates:
-                total = total + int(i['rate'])
-            rate_range = int(total / count_rating)
-            Tour.objects.filter(pk=pk).update(rating=rate_range)
+            r = Rating.objects.update_or_create(user=request.user,
+                                                tour=self.get_object(),
+                                                defaults={"rate": rating})
+            if r:
+                count_rating = Tour.objects.get(pk=pk).ratings.count()
+                rates = Tour.objects.get(pk=pk).ratings.values('rate').all()
+                total = 0
+                for i in rates:
+                    total = total + int(i['rate'])
+                rate_range = int(total / count_rating)
+                Tour.objects.filter(pk=pk).update(rating=rate_range)
 
             return Response(RatingSerializer(r).data,
                             status=status.HTTP_200_OK)
@@ -99,7 +97,7 @@ class TourViewSet(viewsets.ModelViewSet):
                                        tour=self.get_object(),
                                        user=request.user)
 
-            return Response(CommentSerializer(c).data,
+            return Response(CommentSerializer(c, context={"request": request}).data,
                             status=status.HTTP_201_CREATED)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -194,9 +192,8 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
     @action(methods=['get'], detail=True, url_path="comments")
     def get_comments(self, request, pk):
         c = self.get_object()
-        return Response(
-            CommentSerializer(c.comments.order_by("-id").all(), many=True, context={"request": self.request}).data,
-            status=status.HTTP_200_OK)
+        return Response(CommentSerializer(c.comments.order_by("-id").all(), many=True, context={"request": self.request}).data,
+                        status=status.HTTP_200_OK)
 
     @action(methods=['get'], detail=False, url_path="newest")
     def get_newest_blog(self, request):
@@ -213,12 +210,12 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
         except IndexError | ValueError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         else:
-            action = Action.objects.create(type=action_type,
-                                           user=request.user,
-                                           blog=self.get_object())
-
-            count_like = Blog.objects.get(pk=pk).actions.filter(type=1).count()
-            Blog.objects.filter(pk=pk).update(likes=count_like)
+            action = Action.objects.update_or_create(user=request.user,
+                                                     blog=self.get_object(),
+                                                     defaults={"type": action_type})
+            if action:
+                count_like = Blog.objects.get(pk=pk).actions.filter(type=1).count()
+                Blog.objects.filter(pk=pk).update(likes=count_like)
 
             return Response(ActionSerializer(action).data,
                             status=status.HTTP_200_OK)
@@ -232,7 +229,7 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
                                        blog=self.get_object(),
                                        user=request.user)
 
-            return Response(CommentSerializer(c).data,
+            return Response(CommentSerializer(c, context={"request": request}).data,
                             status=status.HTTP_201_CREATED)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
