@@ -20,5 +20,7 @@ router.register('actions', views.ActionViewSet, 'action')
 urlpatterns = [
     path('', include(router.urls)),
     path('admin/', admin_site.urls),
-    path('oauth2-info/', views.AuthInfo.as_view())
+    path('oauth2-info/', views.AuthInfo.as_view()),
+    path('payment/', views.Payment.as_view()),
+    path('confirm-payment/', views.ConfirmPayment.as_view()),
 ]

@@ -7,10 +7,15 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.views import APIView
 from django.db.models import Q
-import urllib
+
+import urllib.request
+import urllib.parse
 import uuid
 import hmac
 import hashlib
+import codecs
+import json
+from datetime import datetime
 
 from .models import *
 from .serializers import *
@@ -308,47 +313,6 @@ class PayerViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.ListAPIVie
                             status=status.HTTP_201_CREATED)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
-
-    # @action(methods=['post'], detail=True, url_path="payment")
-    # def payment(self, request, pk):
-    #     partnerCode = "MOMO3LYS20210822"
-    #     accessKey = "H9FWxUZYXUcnjZ0E"
-    #     secretKey = "YnAUyGXAR5iQ7SibCCtmHcnyk9lHitIN"
-    #     amount = request.data.get('total_amount')
-    #     orderInfo = "pay with MoMo"
-    #     redirectUrl = "http://localhost:3000/"
-    #     ipnUrl = "http://localhost:3000/"
-    #     orderId = str(uuid.uuid4())
-    #     requestId = str(uuid.uuid4())
-    #     requestType = "captureWallet"
-    #     extraData = ""
-    #
-    #     rawSignature = "accessKey=" + accessKey + "&amount=" + amount \
-    #                    + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo \
-    #                    + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId \
-    #                    + "&requestType=" + requestType
-    #
-    #     h = hmac.new(secretKey, rawSignature, hashlib.sha256)
-    #     signature = h.hexdigest()
-    #
-    #     # json object send to MoMo endpoint
-    #
-    #     data = {
-    #         'partnerCode': partnerCode,
-    #         'partnerName': "Test",
-    #         'storeId': "MomoTestStore",
-    #         'requestId': requestId,
-    #         'amount': amount,
-    #         'orderId': orderId,
-    #         'orderInfo': orderInfo,
-    #         'redirectUrl': redirectUrl,
-    #         'ipnUrl': ipnUrl,
-    #         'lang': "vi",
-    #         'extraData': extraData,
-    #         'requestType': requestType,
-    #         'signature': signature
-    #     }
-    #     pass
 
 
 class InvoiceViewSet(viewsets.ViewSet, generics.ListAPIView):
