@@ -339,3 +339,122 @@ class ActionViewSet(viewsets.ViewSet, generics.ListAPIView):
 class AuthInfo(APIView):
     def get(self, request):
         return Response(settings.OAUTH2_INFO, status=status.HTTP_200_OK)
+
+
+secretKey = ""
+accessKey = ""
+
+
+class Payment(APIView):
+    def post(self, request):
+        total_amount = request.data.get('total_amount')
+        tourId = request.data.get('tour_id')
+        if total_amount is not None:
+            endpoint = "https://test-payment.momo.vn/v2/gateway/api/create"
+            partnerCode = "MOMO3LYS20210822"
+            requestType = "captureWallet"
+            redirectUrl = "http://localhost:3000/tour-detail/" + tourId + "/booking-3"
+            ipnUrl = "http://127.0.0.1:8000/confirm-payment/"
+            orderId = str(uuid.uuid4())
+            amount = str(total_amount)
+            orderInfo = "Đơn đặt tour " + datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            requestId = str(uuid.uuid4())
+            extraData = ""
+
+            rawSignature = "accessKey=" + accessKey + "&amount=" + amount \
+                           + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo \
+                           + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId \
+                           + "&requestType=" + requestType
+
+            signature = hmac.new(codecs.encode(secretKey), codecs.encode(rawSignature), hashlib.sha256).hexdigest()
+
+            data = {
+                'partnerCode': partnerCode,
+                'accessKey': accessKey,
+                'requestId': requestId,
+                'amount': amount,
+                'orderId': orderId,
+                'orderInfo': orderInfo,
+                'redirectUrl': redirectUrl,
+                'ipnUrl': ipnUrl,
+                'lang': "vi",
+                'extraData': extraData,
+                'requestType': requestType,
+                'signature': signature
+            }
+
+            data = json.dumps(data).encode("utf-8")
+            clen = len(data)
+
+            headers = {
+                "Content-Type": "application/json; charset=utf-8",
+                "Content-Length": clen
+            }
+
+            req = urllib.request.Request(endpoint, data, headers)
+            f = urllib.request.urlopen(req)
+
+            res = f.read()
+            f.close()
+
+            payUrl = json.loads(res)['payUrl']
+
+            response = {
+                "payUrl": payUrl,
+            }
+
+            return Response(response, status=status.HTTP_200_OK)
+
+        return Response({'message': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ConfirmPayment(APIView):
+    def get(self, request):
+        amount = request.query_params.get('amount')
+        extraData = request.query_params.get('extraData')
+        message = request.query_params.get('message')
+        orderId = request.query_params.get('orderId')
+        orderInfo = request.query_params.get('orderInfo')
+        orderType = request.query_params.get('orderType')
+        partnerCode = request.query_params.get('partnerCode')
+        payType = request.query_params.get('payType')
+        requestId = request.query_params.get('requestId')
+        responseTime = request.query_params.get('responseTime')
+        resultCode = request.query_params.get('resultCode')
+        transId = request.query_params.get('transId')
+
+        param = "accessKey=" + accessKey + \
+                "&amount=" + amount + \
+                "&extraData=" + extraData + \
+                "&message=" + message + \
+                "&orderId=" + orderId + \
+                "&orderInfo=" + orderInfo + \
+                "&orderType=" + orderType + \
+                "&partnerCode=" + partnerCode + \
+                "&payType=" + payType + \
+                "&requestId=" + requestId + \
+                "&responseTime=" + responseTime + \
+                "&resultCode=" + resultCode + \
+                "&transId=" + transId
+
+        param = urllib.parse.unquote(param)
+        signature = hmac.new(codecs.encode(secretKey), codecs.encode(param), hashlib.sha256).hexdigest()
+
+        mess = ""
+        rCode = 0
+        if signature != request.query_params.get('signature'):
+            mess = "Thong tin request khong hop le"
+        else:
+            if resultCode != "0":
+                mess += "Thanh toan that bai"
+                rCode = 0
+            else:
+                mess += "Thanh toan thanh cong"
+                rCode = 1
+
+        res = {
+            "message": mess,
+            "rCode": rCode
+        }
+
+        return Response(res, status=status.HTTP_200_OK)
