@@ -4,9 +4,9 @@ from rest_framework import viewsets, permissions, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
-from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.views import APIView
 from django.db.models import Q
+from django.core.mail import send_mail
 
 import urllib.request
 import urllib.parse
@@ -197,8 +197,9 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
     @action(methods=['get'], detail=True, url_path="comments")
     def get_comments(self, request, pk):
         c = self.get_object()
-        return Response(CommentSerializer(c.comments.order_by("-id").all(), many=True, context={"request": self.request}).data,
-                        status=status.HTTP_200_OK)
+        return Response(
+            CommentSerializer(c.comments.order_by("-id").all(), many=True, context={"request": self.request}).data,
+            status=status.HTTP_200_OK)
 
     @action(methods=['get'], detail=False, url_path="newest")
     def get_newest_blog(self, request):
@@ -278,7 +279,7 @@ class CustomerViewSet(viewsets.ViewSet, generics.ListAPIView,
     serializer_class = CustomerSerializer
 
 
-class PayerViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.ListAPIView):
+class PayerViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.RetrieveAPIView):
     serializer_class = PayerSerializer
     queryset = Payer.objects.all()
 
@@ -304,10 +305,11 @@ class PayerViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.ListAPIVie
         total_amount = request.data.get('total_amount')
         tour_id = request.data.get('tour_id')
         tour = Tour.objects.get(pk=tour_id)
-        # note = request.data.get('note')
+        note = request.data.get('note')
 
         if total_amount:
-            inv = Invoice.objects.create(total_amount=total_amount, payer=self.get_object(), tour=tour)
+            inv = Invoice.objects.create(total_amount=total_amount, note=note,
+                                         payer=self.get_object(), tour=tour)
 
             return Response(InvoiceSerializer(inv).data,
                             status=status.HTTP_201_CREATED)
@@ -341,14 +343,16 @@ class AuthInfo(APIView):
         return Response(settings.OAUTH2_INFO, status=status.HTTP_200_OK)
 
 
-secretKey = ""
-accessKey = ""
+secretKey = "YnAUyGXAR5iQ7SibCCtmHcnyk9lHitIN"
+accessKey = "H9FWxUZYXUcnjZ0E"
 
 
 class Payment(APIView):
     def post(self, request):
         total_amount = request.data.get('total_amount')
         tourId = request.data.get('tour_id')
+        payerId = request.data.get('payer_id')
+
         if total_amount is not None:
             endpoint = "https://test-payment.momo.vn/v2/gateway/api/create"
             partnerCode = "MOMO3LYS20210822"
@@ -357,7 +361,8 @@ class Payment(APIView):
             ipnUrl = "http://127.0.0.1:8000/confirm-payment/"
             orderId = str(uuid.uuid4())
             amount = str(total_amount)
-            orderInfo = "Đơn đặt tour " + datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            orderInfo = "Đơn đặt tour " + datetime.now().strftime("%d/%m/%Y %H:%M:%S") \
+                        + "-TourID:" + tourId + "-PayerID:" + payerId
             requestId = str(uuid.uuid4())
             extraData = ""
 
@@ -441,20 +446,34 @@ class ConfirmPayment(APIView):
         signature = hmac.new(codecs.encode(secretKey), codecs.encode(param), hashlib.sha256).hexdigest()
 
         mess = ""
-        rCode = 0
+        rCode = 1
+        payerId = int(orderInfo[orderInfo.find('PayerID:') + 8: len(orderInfo)])
+        payer = Payer.objects.get(pk=payerId)
+        tourId = int(orderInfo[orderInfo.find('TourID:') + 7: orderInfo.find('-PayerID')])
+        tour = Tour.objects.get(pk=tourId)
+
         if signature != request.query_params.get('signature'):
-            mess = "Thong tin request khong hop le"
+            mess = "Infomation of request is invalid"
         else:
-            if resultCode != "0":
-                mess += "Thanh toan that bai"
+            if resultCode == "0":
+                mess += "Payment success"
                 rCode = 0
             else:
-                mess += "Thanh toan thanh cong"
+                mess += "Payment failed"
                 rCode = 1
+
+        subject = 'Thông Báo đơn đặt tour'
+        body = 'Gửi khách hàng: ' + payer.name + '\nBạn đã đặt tour ' + tour.tour_name + 'thành công\nCảm ơn quý ' \
+                                                                                         'khách đã sử dụng dịch vụ ' \
+                                                                                         'của chúng tôi. '
+        sender = 'hvnj1510@gmail.com'
+        to = payer.email
+        if rCode == 0:
+            send_mail(subject, body, sender, [to], fail_silently=False)
 
         res = {
             "message": mess,
-            "rCode": rCode
+            "rCode": rCode,
         }
 
         return Response(res, status=status.HTTP_200_OK)
