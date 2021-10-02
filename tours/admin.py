@@ -89,6 +89,11 @@ class PayerAdmin(admin.ModelAdmin):
     search_fields = ['name', 'email', 'phone', 'address']
 
 
+class StaffAdmin(admin.ModelAdmin):
+    list_display = ['name', 'gender', 'date_of_birth', 'email', 'phone']
+    search_fields = ['name', 'email', 'phone']
+
+
 def report_invoice(month, year=None, day=None):
     tong = 0
     if day:
@@ -160,7 +165,7 @@ admin_site = TravelWebAdminSite(name='mytour')
 
 admin_site.register(Tour, TourAdmin)
 admin_site.register(Customer, CustomerAdmin)
-admin_site.register(Staff)
+admin_site.register(Staff, StaffAdmin)
 admin_site.register(TourImage, TourImageAdmin)
 admin_site.register(Service)
 admin_site.register(Category)
