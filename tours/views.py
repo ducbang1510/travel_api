@@ -8,6 +8,10 @@ from rest_framework.views import APIView
 from django.db.models import Q
 from django.core.mail import send_mail
 
+from .models import *
+from .serializers import *
+from .paginator import *
+
 import urllib.request
 import urllib.parse
 import uuid
@@ -16,10 +20,6 @@ import hashlib
 import codecs
 import json
 from datetime import datetime
-
-from .models import *
-from .serializers import *
-from .paginator import *
 
 
 class UserViewSet(viewsets.ViewSet,
@@ -276,11 +276,13 @@ class CustomerViewSet(viewsets.ViewSet, generics.ListAPIView,
                       generics.CreateAPIView):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+    pagination_class = CustomerPayerPagination
 
 
 class PayerViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.RetrieveAPIView):
     serializer_class = PayerSerializer
     queryset = Payer.objects.all()
+    pagination_class = CustomerPayerPagination
 
     @action(methods=['post'], detail=True, url_path="add-customer")
     def add_customer(self, request, pk):

@@ -30,6 +30,9 @@ class Staff(ItemBase):
 
     avatar = models.ImageField(upload_to='images/avatars/%Y/%m', null=True, default=None)
 
+    def __str__(self):
+        return self.name
+
 
 class Tour(models.Model):
     class Meta:
@@ -54,12 +57,15 @@ class Tour(models.Model):
     country = models.ForeignKey('Country', related_name='tours', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return self.tour_name
+        return "Tour: %s - Giá: %s" % (self.tour_name, str(self.price_of_tour))
 
 
 class TourImage(models.Model):
     image = models.ImageField(upload_to='images/tours/%Y/%m')
     tour = models.ForeignKey(Tour, related_name='tour_images', on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return "ImageId: %s - TourID: %s" % (str(self.id), str(self.tour))
 
 
 class Service(models.Model):
@@ -91,6 +97,9 @@ class Blog(models.Model):
     likes = models.IntegerField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return "%s - Ngày tạo: %s" % (self.title, self.created_date.strftime("%Y-%m-%d"))
 
 
 class Comment(models.Model):
@@ -143,6 +152,9 @@ class Customer(ItemBase):
     age = models.PositiveSmallIntegerField(choices=AGES, default=ADULT)
     payer = models.ForeignKey('Payer', related_name='customers', on_delete=models.SET_NULL, null=True)
 
+    def __str__(self):
+        return self.name
+
 
 # Thông tin liên hệ của người thanh toán
 class Payer(models.Model):
@@ -162,3 +174,6 @@ class Invoice(models.Model):
     note = models.TextField(null=True, blank=True)
     tour = models.ForeignKey('Tour', related_name='invoices', null=True, on_delete=models.SET_NULL)
     payer = models.ForeignKey('Payer', related_name='invoices', on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return "Mã hóa đơn %s - Ngày tạo: %s" % (str(self.id), self.created_date.strftime("%Y-%m-%d"))

@@ -15,3 +15,7 @@ class CommentPagination(PageNumberPagination):
 
 class TourImagePagination(PageNumberPagination):
     page_size = 20
+
+
+class CustomerPayerPagination(PageNumberPagination):
+    page_size = 20

@@ -31,15 +31,18 @@ class TourImageInlineAdmin(admin.StackedInline):
 
 class TourAdmin(admin.ModelAdmin):
     form = TourForm
-    list_display = ['tour_name', 'departure', 'depart_date', 'duration', 'rating', 'created_date', 'price_of_tour',
-                    'price_of_room', 'active', 'category', 'country']
+    list_display = ['tour_name', 'departure', 'depart_date', 'duration', 'created_date', 'price_of_tour',
+                    'price_of_room', 'active', 'category']
     search_fields = ['tour_name', 'departure', 'depart_date', 'price_of_tour', 'category__name']
-    list_filter = ['departure', 'depart_date', 'country', 'category']
+    list_filter = ['departure', 'depart_date', 'category', 'rating']
     inlines = [TourServiceInlineAdmin, TourImageInlineAdmin, ]
+    list_per_page = 10
 
 
 class TourImageAdmin(admin.ModelAdmin):
+    list_per_page = 10
     readonly_fields = ['picture']
+    search_fields = ['tour__tour_name']
 
     def picture(self, tour_image):
         return mark_safe("<img src='/static/{img_url}' width=480px />".format(img_url=tour_image.image.name))
@@ -57,7 +60,9 @@ class BlogAdmin(admin.ModelAdmin):
     form = BlogForm
 
     list_display = ['title', 'author', 'created_date']
-    search_fields = ['title', 'author', 'created_date']
+    search_fields = ['title', 'author']
+    list_filter = ['created_date']
+    list_per_page = 10
 
 
 class CommentForm(forms.ModelForm):
@@ -69,7 +74,25 @@ class CommentForm(forms.ModelForm):
 
 
 class CommentAdmin(admin.ModelAdmin):
+    list_display = ['content', 'created_date', 'user']
+    list_filter = ['created_date']
+    search_fields = ['content', 'user', 'blog__title', 'tour__tour_name']
+    list_per_page = 10
     form = CommentForm
+
+
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ['tour', 'rate', 'user', 'updated_date']
+    list_filter = ['rate', 'updated_date']
+    search_fields = ['tour__tour_name', 'user__username']
+    list_per_page = 10
+
+
+class ActionAdmin(admin.ModelAdmin):
+    list_display = ['blog', 'type', 'user', 'updated_date']
+    list_filter = ['type', 'updated_date']
+    search_fields = ['blog__title', 'user__username']
+    list_per_page = 10
 
 
 class CustomerForm(forms.ModelForm):
@@ -82,16 +105,26 @@ class CustomerAdmin(admin.ModelAdmin):
     list_display = ['name', 'gender', 'email', 'phone']
     form = CustomerForm
     search_fields = ['name', 'email', 'address']
+    list_per_page = 10
 
 
 class PayerAdmin(admin.ModelAdmin):
     list_display = ['name', 'email', 'phone']
     search_fields = ['name', 'email', 'phone', 'address']
+    list_per_page = 10
 
 
 class StaffAdmin(admin.ModelAdmin):
+    list_per_page = 10
     list_display = ['name', 'gender', 'date_of_birth', 'email', 'phone']
     search_fields = ['name', 'email', 'phone']
+
+
+class InvoiceAdmin(admin.ModelAdmin):
+    list_per_page = 10
+    list_display = ['tour', 'payer', 'total_amount', 'created_date']
+    list_filter = ['created_date', 'total_amount']
+    search_fields = ['tour__tour_name', 'payer__name']
 
 
 class TravelWebAdminSite(admin.AdminSite):
@@ -148,10 +181,11 @@ admin_site.register(TourImage, TourImageAdmin)
 admin_site.register(Service)
 admin_site.register(Category)
 admin_site.register(Country)
-admin_site.register(Invoice)
+admin_site.register(Invoice, InvoiceAdmin)
 admin_site.register(Payer, PayerAdmin)
 admin_site.register(Blog, BlogAdmin)
 admin_site.register(Comment, CommentAdmin)
-admin_site.register(Rating)
+admin_site.register(Rating, RatingAdmin)
+admin_site.register(Action, ActionAdmin)
 admin_site.register(User)
 admin_site.register(Permission)
