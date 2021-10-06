@@ -23,20 +23,19 @@ from .paginator import *
 
 
 class UserViewSet(viewsets.ViewSet,
-                  generics.CreateAPIView,
-                  generics.UpdateAPIView):
+                  generics.CreateAPIView):
     queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
     parser_classes = [MultiPartParser, ]
 
     def get_permissions(self):
-        if self.action == 'current_user':
+        if self.action == 'get_current_user':
             return [permissions.IsAuthenticated()]
 
         return [permissions.AllowAny()]
 
-    @action(methods=['get'], detail=False, url_path='current-user')
-    def current_user(self, request):
+    @action(methods=['get'], detail=False, url_path="current-user")
+    def get_current_user(self, request):
         return Response(self.serializer_class(request.user, context={"request": request}).data,
                         status=status.HTTP_200_OK)
 
@@ -343,8 +342,9 @@ class AuthInfo(APIView):
         return Response(settings.OAUTH2_INFO, status=status.HTTP_200_OK)
 
 
-secretKey = ""
-accessKey = ""
+# Momo Payment Function
+secretKey = settings.MOMO_SECRET_KEY
+accessKey = settings.MOMO_ACCESS_KEY
 
 
 class Payment(APIView):
@@ -354,11 +354,11 @@ class Payment(APIView):
         payerId = request.data.get('payer_id')
 
         if total_amount is not None:
-            endpoint = "https://test-payment.momo.vn/v2/gateway/api/create"
-            partnerCode = "MOMO3LYS20210822"
+            endpoint = settings.MOMO_ENDPOINT
+            partnerCode = settings.MOMO_PARTNER_CODE
             requestType = "captureWallet"
             redirectUrl = "http://localhost:3000/tour-detail/" + tourId + "/booking-3"
-            ipnUrl = "http://127.0.0.1:8000/confirm-payment/"
+            ipnUrl = "http://localhost:3000/tour-detail/" + tourId + "/booking-3"
             orderId = str(uuid.uuid4())
             amount = str(total_amount)
             orderInfo = "Đơn đặt tour " + datetime.now().strftime("%d/%m/%Y %H:%M:%S") \
@@ -477,3 +477,4 @@ class ConfirmPayment(APIView):
         }
 
         return Response(res, status=status.HTTP_200_OK)
+# End Momo Payment Function

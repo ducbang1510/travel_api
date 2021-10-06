@@ -5,31 +5,35 @@ from django.conf import settings
 
 
 class UserSerializer(ModelSerializer):
-    avatar = SerializerMethodField()
+    avatar_url = SerializerMethodField()
 
-    def get_avatar(self, user):
-        request = self.context['request']
-        name = user.avatar.name
-        if name.startswith('static/'):
-            path = '/%s' % name
+    def get_avatar_url(self, user):
+        request = self.context.get('request')
+        if user.avatar and hasattr(user.avatar, 'name'):
+            avatar_url = user.avatar.name
+            if avatar_url.startswith('static/'):
+                avatar_url = '/%s' % avatar_url
+            else:
+                avatar_url = '/static/%s' % avatar_url
+
+            return request.build_absolute_uri(avatar_url)
         else:
-            path = '/static/%s' % name
-
-        return request.build_absolute_uri(path)
-
-    class Meta:
-        model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'username', 'password', 'avatar']
-        extra_kwargs = {
-            'password': {'write_only': 'true'}
-        }
+            return None
 
     def create(self, validated_data):
         user = User(**validated_data)
-        user.set_password(validated_data['password'])
+        user.set_password(user.password)
         user.save()
 
         return user
+
+    class Meta:
+        model = User
+        fields = ["id", "first_name", "last_name", "avatar",
+                  "username", "password", "email", "date_joined", "avatar_url"]
+        extra_kwargs = {
+            'password': {'write_only': 'true'}
+        }
 
 
 class CustomerSerializer(ModelSerializer):
