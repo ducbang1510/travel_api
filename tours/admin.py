@@ -76,7 +76,7 @@ class CommentForm(forms.ModelForm):
 class CommentAdmin(admin.ModelAdmin):
     list_display = ['content', 'created_date', 'user']
     list_filter = ['created_date']
-    search_fields = ['content', 'user', 'blog__title', 'tour__tour_name']
+    search_fields = ['content', 'user__username', 'blog__title', 'tour__tour_name']
     list_per_page = 10
     form = CommentForm
 

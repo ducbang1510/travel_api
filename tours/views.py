@@ -108,10 +108,10 @@ class TourViewSet(viewsets.ModelViewSet):
 
     @action(methods=['get'], detail=True, url_path="comments")
     def get_comments(self, request, pk):
-        comments = Tour.objects.get(pk=pk).comments.order_by("-id").all()
-
-        return Response(CommentSerializer(comments, many=True).data,
-                        status=status.HTTP_200_OK)
+        c = self.get_object()
+        return Response(
+            CommentSerializer(c.comments.order_by("-id").all(), many=True, context={"request": self.request}).data,
+            status=status.HTTP_200_OK)
 
     @action(methods=['get'], detail=False, url_path="popular")
     def get_popular_tour(self, request):
