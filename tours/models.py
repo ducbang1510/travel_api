@@ -48,6 +48,7 @@ class Tour(models.Model):
     price_of_tour = models.FloatField(null=False, blank=False)
     price_of_room = models.FloatField(null=False, blank=False)
     description = RichTextField(default=None, null=True)
+    slots = models.IntegerField(default=0, null=True)
     image = models.ImageField(upload_to='images/tours/%Y/%m', default=None)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
@@ -169,9 +170,15 @@ class Payer(models.Model):
 
 # Thông tin hóa đơn
 class Invoice(models.Model):
+    WAITING, COMPLETED = range(2)
+    STATUS_PAYMENT = [
+        (WAITING, 'waiting'),
+        (COMPLETED, 'completed')
+    ]
     total_amount = models.FloatField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     note = models.TextField(null=True, blank=True)
+    status_payment = models.PositiveSmallIntegerField(choices=STATUS_PAYMENT, default=WAITING)
     tour = models.ForeignKey('Tour', related_name='invoices', null=True, on_delete=models.SET_NULL)
     payer = models.ForeignKey('Payer', related_name='invoices', on_delete=models.SET_NULL, null=True)
 

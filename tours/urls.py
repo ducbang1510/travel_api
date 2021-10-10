@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.urls import path, re_path, include
-from . import views
 from rest_framework import routers
 from .admin import admin_site
 from . import views
@@ -21,6 +20,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('admin/', admin_site.urls),
     path('oauth2-info/', views.AuthInfo.as_view()),
-    path('payment/', views.Payment.as_view()),
-    path('confirm-payment/', views.ConfirmPayment.as_view()),
+    path('momo-payment/', views.MomoPayment.as_view()),
+    path('momo-confirm-payment/', views.MomoConfirmPayment.as_view()),
 ]

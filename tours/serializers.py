@@ -92,7 +92,7 @@ class TourSerializer(ModelSerializer):
 
     class Meta:
         model = Tour
-        fields = ['id', 'tour_name', 'departure', 'depart_date',
+        fields = ['id', 'tour_name', 'departure', 'depart_date', 'slots',
                   'duration', 'rating', 'created_date', 'tour_plan', 'description',
                   'price_of_tour', 'price_of_room', 'image', 'category_id', 'service', 'country_id', "rate"]
 
