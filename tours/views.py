@@ -137,6 +137,19 @@ class TourViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         tours = Tour.objects.filter(active=True)
 
+        sort_value = self.request.query_params.get('sort')
+        if sort_value is not None:
+            if sort_value == '1':
+                tours = tours.order_by('tour_name')
+            elif sort_value == '2':
+                tours = tours.order_by('price_of_tour')
+            elif sort_value == '3':
+                tours = tours.order_by('-price_of_tour')
+            elif sort_value == '4':
+                tours = tours.order_by('-rating')
+        else:
+            pass
+
         q = self.request.query_params.get('q')
         if q is not None:
             tours = tours.filter(tour_name__icontains=q)
@@ -368,13 +381,14 @@ class MomoPayment(APIView):
         total_amount = request.data.get('total_amount')
         tourId = request.data.get('tour_id')
         payerId = request.data.get('payer_id')
+        invoice_id = request.data.get('invoice_id')
 
         if total_amount is not None:
             endpoint = settings.MOMO_ENDPOINT
             partnerCode = settings.MOMO_PARTNER_CODE
             requestType = "captureWallet"
-            redirectUrl = "http://localhost:3000/tour-detail/" + tourId + "/booking-3"
-            ipnUrl = "http://localhost:3000/tour-detail/" + tourId + "/booking-3"
+            redirectUrl = "http://localhost:3000/tour-detail/" + tourId + "/booking-3/" + invoice_id + "/confirm"
+            ipnUrl = "http://127.0.0.1:8000/momo-confirm-payment/"
             orderId = str(uuid.uuid4())
             amount = str(total_amount)
             orderInfo = "Đơn đặt tour " + datetime.now().strftime("%d/%m/%Y %H:%M:%S") \
@@ -480,11 +494,12 @@ class MomoConfirmPayment(APIView):
                     rCode = 1
 
             subject = 'Thông Báo đơn đặt tour'
-            body = 'Gửi khách hàng: ' + payer.name + '\nBạn đã đặt tour ' + tour.tour_name + 'thành công\nCảm ơn quý ' \
-                                                                                             'khách đã sử dụng dịch vụ ' \
-                                                                                             'của chúng tôi. '
+            body = 'Gửi khách hàng: ' + payer.name \
+                   + '\nBạn đã đặt tour ' + tour.tour_name \
+                   + 'thành công\nCảm ơn quý khách đã sử dụng dịch vụ của chúng tôi. '
             sender = 'hvnj1510@gmail.com'
             to = payer.email
+
             if rCode == 0:
                 send_mail(subject, body, sender, [to], fail_silently=False)
 

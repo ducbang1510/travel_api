@@ -1,5 +1,4 @@
-from rest_framework.serializers import HyperlinkedModelSerializer, \
-    ModelSerializer, SerializerMethodField, DateTimeField
+from rest_framework.serializers import ModelSerializer, SerializerMethodField, DateTimeField
 from .models import *
 from django.conf import settings
 
