@@ -68,6 +68,7 @@ class CategorySerializer(ModelSerializer):
 class TourSerializer(ModelSerializer):
     service = ServiceSerializer(many=True)
     image = SerializerMethodField()
+    banner = SerializerMethodField()
     rate = SerializerMethodField()
 
     def get_rate(self, tour):
@@ -89,11 +90,21 @@ class TourSerializer(ModelSerializer):
 
         return request.build_absolute_uri(path)
 
+    def get_banner(self, tour):
+        request = self.context['request']
+        name = tour.banner.name
+        if name.startswith('static/'):
+            path = '/%s' % name
+        else:
+            path = '/static/%s' % name
+
+        return request.build_absolute_uri(path)
+
     class Meta:
         model = Tour
-        fields = ['id', 'tour_name', 'departure', 'depart_date', 'slots',
+        fields = ['id', 'tour_name', 'departure', 'depart_date', 'slots', 'banner',
                   'duration', 'rating', 'created_date', 'tour_plan', 'description',
-                  'price_of_tour', 'price_of_room', 'image', 'category_id', 'service', 'country_id', "rate"]
+                  'price_of_tour', 'price_of_room', 'image', 'category_id', 'service', 'country_id', 'rate']
 
 
 class TourImageSerializer(ModelSerializer):
@@ -119,10 +130,10 @@ REPLACE_WITH = 'src=\"%s/static/' % settings.SITE_DOMAIN
 
 
 class BlogSerializer(ModelSerializer):
-    content = SerializerMethodField()
     created_date = DateTimeField(read_only=True, format="%Y-%m-%d")
     image = SerializerMethodField()
     type = SerializerMethodField()
+    content = SerializerMethodField()
 
     def get_type(self, blog):
         request = self.context.get("request")
@@ -134,9 +145,13 @@ class BlogSerializer(ModelSerializer):
         return -1
 
     def get_content(self, blog):
-        text = blog.content
-        if text.find(SEARCH_PATTERN):
-            c = text.replace(SEARCH_PATTERN, REPLACE_WITH)
+        request = self.context.get('request')
+        if request:
+            text = blog.content
+            if text.find(SEARCH_PATTERN):
+                c = text.replace(SEARCH_PATTERN, REPLACE_WITH)
+            else:
+                c = text
 
         return c
 

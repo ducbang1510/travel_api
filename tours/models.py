@@ -50,6 +50,7 @@ class Tour(models.Model):
     description = RichTextField(default=None, null=True)
     slots = models.IntegerField(default=0, null=True)
     image = models.ImageField(upload_to='images/tours/%Y/%m', default=None)
+    banner = models.ImageField(upload_to='images/tour_banners/%Y/%m', default=None)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
@@ -62,6 +63,8 @@ class Tour(models.Model):
 
 
 class TourImage(models.Model):
+    class Meta:
+        ordering = ["-id"]
     image = models.ImageField(upload_to='images/tours/%Y/%m')
     tour = models.ForeignKey(Tour, related_name='tour_images', on_delete=models.SET_NULL, null=True)
 
@@ -91,6 +94,9 @@ class Country(models.Model):
 
 
 class Blog(models.Model):
+    class Meta:
+        ordering = ["-id"]
+
     title = models.CharField(max_length=255, null=False, unique=True)
     image = models.ImageField(upload_to='images/blogs/%Y/%m', default=None)
     author = models.CharField(max_length=100, null=True, default=None)
@@ -104,6 +110,9 @@ class Blog(models.Model):
 
 
 class Comment(models.Model):
+    class Meta:
+        ordering = ["-id"]
+
     content = RichTextField()
     created_date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, related_name="comments", on_delete=models.CASCADE, null=True)
@@ -144,6 +153,9 @@ class Rating(ActionBase):
 
 # Thông tin khách hàng
 class Customer(ItemBase):
+    class Meta:
+        ordering = ["-id"]
+
     ADULT, CHILD = range(2)
     AGES = [
         (ADULT, 'adult'),
@@ -159,6 +171,9 @@ class Customer(ItemBase):
 
 # Thông tin liên hệ của người thanh toán
 class Payer(models.Model):
+    class Meta:
+        ordering = ["-id"]
+
     name = models.CharField(max_length=255, null=False)
     email = models.EmailField(max_length=254, null=False)
     phone = models.CharField(max_length=255, null=False)
@@ -170,6 +185,9 @@ class Payer(models.Model):
 
 # Thông tin hóa đơn
 class Invoice(models.Model):
+    class Meta:
+        ordering = ["-id"]
+
     WAITING, COMPLETED = range(2)
     STATUS_PAYMENT = [
         (WAITING, 'waiting'),

@@ -178,6 +178,10 @@ class TourViewSet(viewsets.ModelViewSet):
         if rate is not None:
             tours = tours.filter(rating=rate)
 
+        depart_date = self.request.query_params.get('depart_date')
+        if depart_date is not None:
+            tours = tours.filter(depart_date=depart_date)
+
         return tours
 
 

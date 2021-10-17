@@ -112,8 +112,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-# image
-/tours/static/images/tours
-/tours/static/images/blogs
-/tours/static/images/avatars
