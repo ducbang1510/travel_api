@@ -245,14 +245,14 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
         except IndexError | ValueError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         else:
-            action = Action.objects.update_or_create(user=request.user,
-                                                     blog=self.get_object(),
-                                                     defaults={"type": action_type})
-            if action:
+            action_user = Action.objects.update_or_create(user=request.user,
+                                                          blog=self.get_object(),
+                                                          defaults={"type": action_type})
+            if action_user:
                 count_like = Blog.objects.get(pk=pk).actions.filter(type=1).count()
                 Blog.objects.filter(pk=pk).update(likes=count_like)
 
-            return Response(ActionSerializer(action).data,
+            return Response(ActionSerializer(action_user).data,
                             status=status.HTTP_200_OK)
 
     @action(methods=['post'], detail=True, url_path="add-comment")
@@ -270,17 +270,17 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def get_queryset(self):
-        blogs = Blog.objects.filter(active=True)
+        list_blog = Blog.objects.filter(active=True)
 
         q = self.request.query_params.get('q')
         if q is not None:
-            blogs = blogs.filter(title__icontains=q)
+            list_blog = list_blog.filter(title__icontains=q)
 
         author = self.request.query_params.get('author')
         if author is not None:
-            blogs = blogs.filter(author__icontains=author)
+            list_blog = list_blog.filter(author__icontains=author)
 
-        return blogs
+        return list_blog
 
 
 class CommentViewSet(viewsets.ViewSet, generics.DestroyAPIView,
@@ -323,8 +323,8 @@ class PayerViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.RetrieveAP
         address = request.data.get('address')
 
         if name and gender and phone and address and email:
-            c = Customer.objects.create(name=name, gender=gender, address=address, phone=phone, email=email
-                                        , payer=self.get_object())
+            c = Customer.objects.create(name=name, gender=gender, address=address, phone=phone, email=email,
+                                        payer=self.get_object())
 
             return Response(CustomerSerializer(c).data,
                             status=status.HTTP_201_CREATED)
@@ -359,15 +359,15 @@ class ActionViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = Action.objects.all()
 
     def get_queryset(self):
-        action = Action.objects.all()
+        actions = Action.objects.all()
         user_id = self.request.query_params.get('user_id')
         blog_id = self.request.query_params.get('blog_id')
         if user_id is not None:
-            action = Action.objects.filter(user_id=user_id)
+            actions = Action.objects.filter(user_id=user_id)
         if blog_id is not None:
-            action = Action.objects.filter(blog_id=blog_id)
+            actions = Action.objects.filter(blog_id=blog_id)
 
-        return action
+        return actions
 
 
 class AuthInfo(APIView):
@@ -376,58 +376,59 @@ class AuthInfo(APIView):
 
 
 # Momo Payment Function
-secretKey = settings.MOMO_SECRET_KEY
-accessKey = settings.MOMO_ACCESS_KEY
+secret_key = settings.MOMO_SECRET_KEY
+access_key = settings.MOMO_ACCESS_KEY
 
 
 class MomoPayment(APIView):
     def post(self, request):
         total_amount = request.data.get('total_amount')
-        tourId = request.data.get('tour_id')
-        payerId = request.data.get('payer_id')
+        tour_id = request.data.get('tour_id')
+        payer_id = request.data.get('payer_id')
         invoice_id = request.data.get('invoice_id')
 
         if total_amount is not None:
             endpoint = settings.MOMO_ENDPOINT
-            partnerCode = settings.MOMO_PARTNER_CODE
-            requestType = "captureWallet"
-            redirectUrl = "http://localhost:3000/tour-detail/" + tourId + "/booking-3/" + invoice_id + "/confirm"
-            ipnUrl = "http://127.0.0.1:8000/momo-confirm-payment/"
-            orderId = str(uuid.uuid4())
+            partner_code = settings.MOMO_PARTNER_CODE
+            request_type = "captureWallet"
+            redirect_url = "http://localhost:3000/tour-detail/" + tour_id + "/booking-3/" + invoice_id + "/confirm"
+            ipn_url = "https://webhook.site/15e83871-255c-47f6-8868-32bf60fe4200"
+            order_id = str(uuid.uuid4())
             amount = str(total_amount)
-            orderInfo = "Đơn đặt tour " + datetime.now().strftime("%d/%m/%Y %H:%M:%S") \
-                        + "-TourID:" + tourId + "-PayerID:" + payerId
-            requestId = str(uuid.uuid4())
-            extraData = ""
+            order_info = "Đơn đặt tour " + datetime.now().strftime("%d/%m/%Y %H:%M:%S") \
+                         + "-TourID:" + tour_id + "-PayerID:" + payer_id
+            request_id = str(uuid.uuid4())
+            extra_data = ""
 
-            rawSignature = "accessKey=" + accessKey + "&amount=" + amount \
-                           + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo \
-                           + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId \
-                           + "&requestType=" + requestType
+            raw_signature = "accessKey=" + access_key + "&amount=" + amount \
+                            + "&extraData=" + extra_data + "&ipnUrl=" + ipn_url + "&orderId=" + order_id \
+                            + "&orderInfo=" + order_info + "&partnerCode=" + partner_code \
+                            + "&redirectUrl=" + redirect_url + "&requestId=" + request_id \
+                            + "&requestType=" + request_type
 
-            signature = hmac.new(codecs.encode(secretKey), codecs.encode(rawSignature), hashlib.sha256).hexdigest()
+            signature = hmac.new(codecs.encode(secret_key), codecs.encode(raw_signature), hashlib.sha256).hexdigest()
 
             data = {
-                'partnerCode': partnerCode,
-                'accessKey': accessKey,
-                'requestId': requestId,
+                'partnerCode': partner_code,
+                'accessKey': access_key,
+                'requestId': request_id,
                 'amount': amount,
-                'orderId': orderId,
-                'orderInfo': orderInfo,
-                'redirectUrl': redirectUrl,
-                'ipnUrl': ipnUrl,
+                'orderId': order_id,
+                'orderInfo': order_info,
+                'redirectUrl': redirect_url,
+                'ipnUrl': ipn_url,
                 'lang': "vi",
-                'extraData': extraData,
-                'requestType': requestType,
+                'extraData': extra_data,
+                'requestType': request_type,
                 'signature': signature
             }
 
             data = json.dumps(data).encode("utf-8")
-            clen = len(data)
+            content_len = len(data)
 
             headers = {
                 "Content-Type": "application/json; charset=utf-8",
-                "Content-Length": clen
+                "Content-Length": content_len
             }
 
             req = urllib.request.Request(endpoint, data, headers)
@@ -436,10 +437,10 @@ class MomoPayment(APIView):
             res = f.read()
             f.close()
 
-            payUrl = json.loads(res)['payUrl']
+            pay_url = json.loads(res)['payUrl']
 
             response = {
-                "payUrl": payUrl,
+                "payUrl": pay_url,
             }
 
             return Response(response, status=status.HTTP_200_OK)
@@ -449,53 +450,98 @@ class MomoPayment(APIView):
 
 class MomoConfirmPayment(APIView):
     def get(self, request):
-        amount = request.query_params.get('amount')
-        extraData = request.query_params.get('extraData')
-        message = request.query_params.get('message')
-        orderId = request.query_params.get('orderId')
-        orderInfo = request.query_params.get('orderInfo')
-        orderType = request.query_params.get('orderType')
-        partnerCode = request.query_params.get('partnerCode')
-        payType = request.query_params.get('payType')
-        requestId = request.query_params.get('requestId')
-        responseTime = request.query_params.get('responseTime')
-        resultCode = request.query_params.get('resultCode')
-        transId = request.query_params.get('transId')
+        order_id = request.query_params.get('orderId')
+        result_code = request.query_params.get('resultCode')
 
-        if orderId is not None:
-            param = "accessKey=" + accessKey + \
-                    "&amount=" + amount + \
-                    "&extraData=" + extraData + \
-                    "&message=" + message + \
-                    "&orderId=" + orderId + \
-                    "&orderInfo=" + orderInfo + \
-                    "&orderType=" + orderType + \
-                    "&partnerCode=" + partnerCode + \
-                    "&payType=" + payType + \
-                    "&requestId=" + requestId + \
-                    "&responseTime=" + responseTime + \
-                    "&resultCode=" + resultCode + \
-                    "&transId=" + transId
+        if order_id is not None and result_code is not None:
+            param = "accessKey=" + access_key + \
+                    "&amount=" + request.query_params.get('amount') + \
+                    "&extraData=" + request.query_params.get('extraData') + \
+                    "&message=" + request.query_params.get('message') + \
+                    "&orderId=" + order_id + \
+                    "&orderInfo=" + request.query_params.get('orderInfo') + \
+                    "&orderType=" + request.query_params.get('orderType') + \
+                    "&partnerCode=" + request.query_params.get('partnerCode') + \
+                    "&payType=" + request.query_params.get('payType') + \
+                    "&requestId=" + request.query_params.get('requestId') + \
+                    "&responseTime=" + request.query_params.get('responseTime') + \
+                    "&resultCode=" + result_code + \
+                    "&transId=" + request.query_params.get('transId')
 
             param = urllib.parse.unquote(param)
-            signature = hmac.new(codecs.encode(secretKey), codecs.encode(param), hashlib.sha256).hexdigest()
+            signature = hmac.new(codecs.encode(secret_key), codecs.encode(param), hashlib.sha256).hexdigest()
 
             mess = ""
-            rCode = 1
-            payerId = int(orderInfo[orderInfo.find('PayerID:') + 8: len(orderInfo)])
-            payer = Payer.objects.get(pk=payerId)
-            tourId = int(orderInfo[orderInfo.find('TourID:') + 7: orderInfo.find('-PayerID')])
-            tour = Tour.objects.get(pk=tourId)
+            r_code = -1
 
             if signature != request.query_params.get('signature'):
-                mess = "Infomation of request is invalid"
+                mess = "Signature of request is invalid"
             else:
-                if resultCode == "0":
+                if result_code == "0":
                     mess += "Payment success"
-                    rCode = 0
+                    r_code = 0
                 else:
                     mess += "Payment failed"
-                    rCode = 1
+                    r_code = 1
+
+            res = {
+                "message": mess,
+                "rCode": r_code,
+            }
+
+            return Response(res, status=status.HTTP_200_OK)
+
+        return Response({"message": "Confirm request failed"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        amount = str(request.data.get('amount'))
+        extra_data = request.data.get('extraData')
+        message = request.data.get('message')
+        order_id = request.data.get('orderId')
+        order_info = request.data.get('orderInfo')
+        order_type = request.data.get('orderType')
+        partner_code = request.data.get('partnerCode')
+        pay_type = request.data.get('payType')
+        request_id = request.data.get('requestId')
+        response_time = str(request.data.get('responseTime'))
+        result_code = str(request.data.get('resultCode'))
+        trans_id = str(request.data.get('transId'))
+
+        if order_id is not None and result_code is not None:
+            param = "accessKey=" + access_key + \
+                    "&amount=" + amount + \
+                    "&extraData=" + extra_data + \
+                    "&message=" + message + \
+                    "&orderId=" + order_id + \
+                    "&orderInfo=" + order_info + \
+                    "&orderType=" + order_type + \
+                    "&partnerCode=" + partner_code + \
+                    "&payType=" + pay_type + \
+                    "&requestId=" + request_id + \
+                    "&responseTime=" + response_time + \
+                    "&resultCode=" + result_code + \
+                    "&transId=" + trans_id
+
+            param = urllib.parse.unquote(param)
+            signature = hmac.new(codecs.encode(secret_key), codecs.encode(param), hashlib.sha256).hexdigest()
+
+            mess = ""
+            r_code = -1
+
+            payer_id = int(order_info[order_info.find('PayerID:') + 8: len(order_info)])
+            payer = Payer.objects.get(pk=payer_id)
+            tour_id = int(order_info[order_info.find('TourID:') + 7: order_info.find('-PayerID')])
+            tour = Tour.objects.get(pk=tour_id)
+
+            if signature != request.data.get('signature'):
+                mess = "Signature of request is invalid"
+            else:
+                if result_code == "0":
+                    mess += "Payment success"
+                    r_code = 0
+                else:
+                    mess += "Payment failed"
+                    r_code = 1
 
             subject = 'Thông Báo đơn đặt tour'
             body = 'Gửi khách hàng: ' + payer.name \
@@ -504,15 +550,41 @@ class MomoConfirmPayment(APIView):
             sender = 'hvnj1510@gmail.com'
             to = payer.email
 
-            if rCode == 0:
-                send_mail(subject, body, sender, [to], fail_silently=False)
+            if r_code > -1:
+                if r_code == 0:
+                    send_mail(subject, body, sender, [to], fail_silently=False)
 
-            res = {
-                "message": mess,
-                "rCode": rCode,
-            }
+                partner_code = settings.MOMO_PARTNER_CODE
+                result_code = str(r_code)
+                message = mess
+                extra_data = ''
 
-            return Response(res, status=status.HTTP_200_OK)
+                raw_signature = "accessKey=" + access_key \
+                                + "&extraData=" + extra_data + "&message=" + message \
+                                + "&orderId=" + order_id \
+                                + "&partnerCode=" + partner_code + "&requestId=" + request_id \
+                                + "&responseTime=" + response_time + "&resultCode=" + result_code
 
-        return Response({"message": "Invalid confirm request"}, status=status.HTTP_400_BAD_REQUEST)
+                signature = hmac.new(codecs.encode(secret_key), codecs.encode(raw_signature), hashlib.sha256).hexdigest()
+
+                data = {
+                    'partnerCode': partner_code,
+                    'requestId': request_id,
+                    'orderId': order_id,
+                    'resultCode': result_code,
+                    'message': message,
+                    'responseTime': response_time,
+                    'extraData': extra_data,
+                    'signature': signature
+                }
+
+                data = json.dumps(data).encode("utf-8")
+
+                headers = {
+                    "Content-Type": "application/json; charset=utf-8",
+                }
+
+                return Response(data, status=status.HTTP_200_OK, headers=headers)
+
+        return Response({"message": "Confirm request failed"}, status=status.HTTP_400_BAD_REQUEST)
 # End Momo Payment Function
