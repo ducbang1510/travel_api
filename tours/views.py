@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
 from django.db.models import Q
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 
 from .models import *
 from .serializers import *
@@ -19,7 +19,7 @@ import hmac
 import hashlib
 import codecs
 import json
-from datetime import datetime
+from datetime import datetime, date
 
 
 class UserViewSet(viewsets.ViewSet,
@@ -391,12 +391,12 @@ class MomoPayment(APIView):
             endpoint = settings.MOMO_ENDPOINT
             partner_code = settings.MOMO_PARTNER_CODE
             request_type = "captureWallet"
-            redirect_url = "http://localhost:3000/tour-detail/" + tour_id + "/booking-3/" + invoice_id + "/confirm"
-            ipn_url = "https://webhook.site/15e83871-255c-47f6-8868-32bf60fe4200"
+            redirect_url = settings.REDIRECT_URL % (tour_id, invoice_id)
+            ipn_url = settings.IPN_URL
             order_id = str(uuid.uuid4())
             amount = str(total_amount)
-            order_info = "Đơn đặt tour " + datetime.now().strftime("%d/%m/%Y %H:%M:%S") \
-                         + "-TourID:" + tour_id + "-PayerID:" + payer_id
+            order_info = "Đơn đặt tour %s-TourID:%s-PayerID:%s" % (datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                                                                   tour_id, payer_id)
             request_id = str(uuid.uuid4())
             extra_data = ""
 
@@ -449,6 +449,8 @@ class MomoPayment(APIView):
 
 
 class MomoConfirmPayment(APIView):
+    # The function handles the payment confirmation through the information taken from the params returnUrl
+    # Processing payment confirmations on the user interface
     def get(self, request):
         order_id = request.query_params.get('orderId')
         result_code = request.query_params.get('resultCode')
@@ -493,6 +495,8 @@ class MomoConfirmPayment(APIView):
 
         return Response({"message": "Confirm request failed"}, status=status.HTTP_400_BAD_REQUEST)
 
+    # The function handles the payment confirmation through the information taken from request body by Momo to server
+    # Processing payment confirmations: send mail and update status payment invoice in database
     def post(self, request):
         amount = str(request.data.get('amount'))
         extra_data = request.data.get('extraData')
@@ -532,6 +536,7 @@ class MomoConfirmPayment(APIView):
             payer = Payer.objects.get(pk=payer_id)
             tour_id = int(order_info[order_info.find('TourID:') + 7: order_info.find('-PayerID')])
             tour = Tour.objects.get(pk=tour_id)
+            order_date = date.today().strftime("%d/%m/%Y")
 
             if signature != request.data.get('signature'):
                 mess = "Signature of request is invalid"
@@ -543,16 +548,20 @@ class MomoConfirmPayment(APIView):
                     mess += "Payment failed"
                     r_code = 1
 
-            subject = 'Thông Báo đơn đặt tour'
-            body = 'Gửi khách hàng: ' + payer.name \
-                   + '\nBạn đã đặt tour ' + tour.tour_name \
-                   + 'thành công\nCảm ơn quý khách đã sử dụng dịch vụ của chúng tôi. '
+            subject = 'Thông báo đơn đặt tour'
+            body = 'Gửi khách hàng: <strong>' + payer.name \
+                   + '</strong><br>Bạn đã đặt tour <strong>' + tour.tour_name + '</strong> thành công.<br>' \
+                   + 'Số tiền đã thanh toán: <strong>' + amount \
+                   + '</strong><br>Ngày đặt: ' + order_date \
+                   + '<br>Cảm ơn quý khách đã sử dụng dịch vụ của chúng tôi.<br>'
             sender = 'hvnj1510@gmail.com'
             to = payer.email
 
             if r_code > -1:
-                if r_code == 0:
-                    send_mail(subject, body, sender, [to], fail_silently=False)
+                if r_code == 1:
+                    msg = EmailMessage(subject, body, sender, [to])
+                    msg.content_subtype = "html"
+                    msg.send()
 
                 partner_code = settings.MOMO_PARTNER_CODE
                 result_code = str(r_code)

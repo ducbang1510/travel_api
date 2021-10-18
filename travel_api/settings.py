@@ -173,6 +173,8 @@ MOMO_SECRET_KEY = config('MOMO_SECRET_KEY', default='')
 MOMO_ACCESS_KEY = config('MOMO_ACCESS_KEY', default='')
 MOMO_PARTNER_CODE = config('MOMO_PARTNER_CODE', default='')
 MOMO_ENDPOINT = config('MOMO_ENDPOINT', default='')
+IPN_URL = config('IPN_URL', default='')
+REDIRECT_URL = config('REDIRECT_URL', default='')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
