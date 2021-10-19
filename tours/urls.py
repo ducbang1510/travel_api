@@ -20,6 +20,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('admin/', admin_site.urls),
     path('oauth2-info/', views.AuthInfo.as_view()),
-    path('momo-payment/', views.MomoPayment.as_view()),
-    path('momo-confirm-payment/', views.MomoConfirmPayment.as_view()),
+    path('momo-payment/', views.MomoPayment.as_view(), name='momo-payment'),
+    path('momo-confirm-payment/', views.MomoConfirmPayment.as_view(), name='momo-confirm-payment'),
 ]

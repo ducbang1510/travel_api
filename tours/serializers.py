@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, SerializerMethodField, DateTimeField
+from rest_framework.serializers import ModelSerializer, SerializerMethodField, DateTimeField, Serializer, CharField
 from .models import *
 from django.conf import settings
 

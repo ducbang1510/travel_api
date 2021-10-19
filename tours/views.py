@@ -29,7 +29,7 @@ class UserViewSet(viewsets.ViewSet,
     parser_classes = [MultiPartParser, ]
 
     def get_permissions(self):
-        if self.action == 'get_current_user':
+        if self.action in ['get_current_user', 'change_password']:
             return [permissions.IsAuthenticated()]
 
         return [permissions.AllowAny()]
@@ -38,6 +38,29 @@ class UserViewSet(viewsets.ViewSet,
     def get_current_user(self, request):
         return Response(self.serializer_class(request.user, context={"request": request}).data,
                         status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=False, url_path="change-password")
+    def change_password(self, request):
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+        account = request.user
+
+        if old_password is not None and new_password is not None and old_password != new_password:
+            if not account.check_password(old_password):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            account.set_password(new_password)
+            account.save()
+            response = {
+                'status': 'success',
+                'code': status.HTTP_200_OK,
+                'message': 'Password updated successfully',
+                'data': []
+            }
+
+            return Response(response)
+
+        return Response({"Message": ["Errors."]}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TourViewSet(viewsets.ModelViewSet):
@@ -558,7 +581,7 @@ class MomoConfirmPayment(APIView):
             to = payer.email
 
             if r_code > -1:
-                if r_code == 1:
+                if r_code == 0:
                     msg = EmailMessage(subject, body, sender, [to])
                     msg.content_subtype = "html"
                     msg.send()
