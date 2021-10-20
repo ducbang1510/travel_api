@@ -5,7 +5,6 @@ from django.conf import settings
 
 class UserSerializer(ModelSerializer):
     avatar_url = SerializerMethodField()
-    email = models.EmailField(unique=True, blank=True)
 
     def get_avatar_url(self, user):
         request = self.context.get('request')
