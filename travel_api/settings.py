@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'debug_toolbar',
     'drf_yasg',
+    'django_rest_passwordreset',
 ]
 
 REST_FRAMEWORK = {
@@ -55,6 +56,17 @@ REST_FRAMEWORK = {
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     )
 }
+
+# Config of random token
+DJANGO_REST_PASSWORDRESET_TOKEN_CONFIG = {
+    "CLASS": "django_rest_passwordreset.tokens.RandomStringTokenGenerator",
+    "OPTIONS": {
+        "min_length": 20,
+        "max_length": 30
+    }
+}
+
+DJANGO_REST_MULTITOKENAUTH_RESET_TOKEN_EXPIRY_TIME = 0.5  # Time in hours
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

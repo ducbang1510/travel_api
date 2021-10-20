@@ -5,6 +5,7 @@ from django.conf import settings
 
 class UserSerializer(ModelSerializer):
     avatar_url = SerializerMethodField()
+    email = models.EmailField(unique=True, blank=True)
 
     def get_avatar_url(self, user):
         request = self.context.get('request')
@@ -28,7 +29,7 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "first_name", "last_name", "avatar",
+        fields = ["id", "first_name", "last_name",
                   "username", "password", "email", "date_joined", "avatar_url"]
         extra_kwargs = {
             'password': {'write_only': 'true'}

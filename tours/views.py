@@ -8,6 +8,11 @@ from rest_framework.views import APIView
 from django.db.models import Q
 from django.core.mail import EmailMessage
 
+from django.dispatch import receiver
+from django.urls import reverse
+from django_rest_passwordreset.signals import reset_password_token_created
+from django.core.mail import send_mail
+
 from .models import *
 from .serializers import *
 from .paginator import *
@@ -53,14 +58,26 @@ class UserViewSet(viewsets.ViewSet,
             account.save()
             response = {
                 'status': 'success',
-                'code': status.HTTP_200_OK,
                 'message': 'Password updated successfully',
                 'data': []
             }
 
-            return Response(response)
+            return Response(response, status=status.HTTP_200_OK)
 
         return Response({"Message": ["Errors."]}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetPasswordView:
+    @receiver(reset_password_token_created)
+    def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
+        subject = "Password Reset for {title}".format(title="Website Travio")
+        body = "http://localhost:3000/reset-password/{}<br>Link này có hiệu lực trong 30 phút !".format(reset_password_token.key)
+        auth = 'hvnj1510@gmail.com'
+        to = reset_password_token.user.email
+
+        msg = EmailMessage(subject, body, auth, [to])
+        msg.content_subtype = "html"
+        msg.send()
 
 
 class TourViewSet(viewsets.ModelViewSet):
