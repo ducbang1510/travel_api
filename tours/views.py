@@ -8,6 +8,10 @@ from rest_framework.views import APIView
 from django.db.models import Q
 from django.core.mail import EmailMessage
 
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
 from django.dispatch import receiver
 from django_rest_passwordreset.signals import reset_password_token_created
 
@@ -68,13 +72,17 @@ class UserViewSet(viewsets.ViewSet,
 class ResetPasswordView:
     @receiver(reset_password_token_created)
     def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
-        subject = "Password Reset for {title}".format(title="Website Travio")
-        body = "http://localhost:3000/reset-password/{}<br>Link này có hiệu lực trong 30 phút !".format(reset_password_token.key)
-        auth = 'hvnj1510@gmail.com'
+        link_reset = "http://localhost:3000/reset-password/{}".format(reset_password_token.key)
+        home = "http://localhost:3000"
+        subject = "Link Reset Password for {title}".format(title="Website Travio")
+        from_email = 'hvnj1510@gmail.com'
         to = reset_password_token.user.email
 
-        msg = EmailMessage(subject, body, auth, [to])
-        msg.content_subtype = "html"
+        html_content = render_to_string('email_reset_pass.html', {'title': subject, 'link': link_reset, 'home': home})
+        text_content = strip_tags(html_content)
+
+        msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        msg.attach_alternative(html_content, "text/html")
         msg.send()
 
 
