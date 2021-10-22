@@ -194,6 +194,12 @@ MOMO_ENDPOINT = config('MOMO_ENDPOINT', default='')
 IPN_URL = config('IPN_URL', default='')
 REDIRECT_URL = config('REDIRECT_URL', default='')
 
+ZALO_APP_ID = config('ZALO_APP_ID', default='')
+ZALO_KEY1 = config('ZALO_KEY1', default='')
+ZALO_KEY2 = config('ZALO_KEY2', default='')
+ZALO_URL_CREATE_ORDER = config('ZALO_URL_CREATE_ORDER', default='')
+ZALO_URL_GET_STATUS = config('ZALO_URL_GET_STATUS', default='')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 

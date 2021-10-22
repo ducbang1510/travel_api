@@ -27,6 +27,7 @@ import hashlib
 import codecs
 import json
 from datetime import datetime, date
+from time import time
 
 
 class UserViewSet(viewsets.ViewSet,
@@ -437,7 +438,7 @@ class MomoPayment(APIView):
             endpoint = settings.MOMO_ENDPOINT
             partner_code = settings.MOMO_PARTNER_CODE
             request_type = "captureWallet"
-            redirect_url = settings.REDIRECT_URL % (tour_id, invoice_id)
+            redirect_url = "http://localhost:3000/tour-detail/" + tour_id + "/booking-3/" + invoice_id + "/1/confirm"
             ipn_url = settings.IPN_URL
             order_id = str(uuid.uuid4())
             amount = str(total_amount)
@@ -643,3 +644,130 @@ class MomoConfirmPayment(APIView):
 
         return Response({"message": "Confirm request failed"}, status=status.HTTP_400_BAD_REQUEST)
 # End Momo Payment Function
+
+
+# Begin Zalo Payment Function
+class ZaloPayment(APIView):
+    def post(self, request):
+        total_amount = request.data.get('total_amount')
+        tour_id = request.data.get('tour_id')
+        payer_id = request.data.get('payer_id')
+        invoice_id = request.data.get('invoice_id')
+        # "requesturl": "https://webhook.site/15e83871-255c-47f6-8868-32bf60fe4200"
+
+        if total_amount is not None:
+            order = {
+                "appid": settings.ZALO_APP_ID,
+                "apptransid": "{:%y%m%d}_{}".format(datetime.today(), uuid.uuid4()),
+                # mã giao dich có định dạng yyMMdd_xxxx
+                "appuser": "demo",
+                "apptime": int(round(time() * 1000)),  # miliseconds
+                "embeddata": json.dumps({
+                    "promotioninfo": "",
+                    "merchantinfo": "embeddata123",
+                    "redirecturl": "http://localhost:3000/tour-detail/" + tour_id + "/booking-3/" + invoice_id + "/3/confirm",
+                }),
+                "item": json.dumps([
+                    {"tour_id": tour_id, "payer_id": payer_id, "invoice_id": invoice_id, "total_amount": total_amount}
+                ]),
+                "amount": total_amount,
+                "description": "ZaloPay Integration Demo",
+                "bankcode": "zalopayapp"
+            }
+
+            # appid|apptransid|appuser|amount|apptime|embeddata|item
+            data = "{}|{}|{}|{}|{}|{}|{}".format(order["appid"], order["apptransid"], order["appuser"],
+                                                 order["amount"], order["apptime"], order["embeddata"], order["item"])
+
+            order["mac"] = hmac.new(settings.ZALO_KEY1.encode(), data.encode(), hashlib.sha256).hexdigest()
+
+            response = urllib.request.urlopen(url=settings.ZALO_URL_CREATE_ORDER,
+                                              data=urllib.parse.urlencode(order).encode())
+            result = json.loads(response.read())
+
+            return_code = result['returncode']
+            order_url = result['orderurl']
+
+            if return_code == 1:
+                response = {
+                    "orderUrl": order_url,
+                }
+                return Response(response, status=status.HTTP_200_OK)
+
+        return Response({'message': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ZaloCallBack(APIView):
+    def post(self, request):
+        print('callback process')
+        try:
+            cbdata = request.data.get('data')
+            mac = hmac.new(settings.ZALO_KEY2.encode(), cbdata['data'].encode(), hashlib.sha256).hexdigest()
+            print('callback success')
+
+            # kiểm tra callback hợp lệ (đến từ ZaloPay server)
+            if mac != request.data.get('mac'):
+                # callback không hợp lệ
+                return_code = -1
+                return_message = 'mac not equal'
+            else:
+                # thanh toán thành công
+                # merchant cập nhật trạng thái cho đơn hàng
+                dataJson = json.loads(cbdata)
+                print("update order's status = success where apptransid = " + dataJson['apptransid'])
+
+                return_code = 1
+                return_message = 'success'
+        except Exception as e:
+            return_code = 0  # ZaloPay server sẽ callback lại (tối đa 3 lần)
+            return_message = str(e)
+
+        # thông báo kết quả cho ZaloPay server
+        return Response({'returncode': return_code, 'returnmessage': return_message})
+
+
+def getZaloStatusPayment(app_id, trans_id):
+    params = {
+        "appid": app_id,
+        "apptransid": app_id
+    }
+
+    data = "{}|{}|{}".format(app_id, trans_id, settings.ZALO_KEY1)  # appid|apptransid|key1
+    params["mac"] = hmac.new(settings.ZALO_KEY1.encode(), data.encode(), hashlib.sha256).hexdigest()
+
+    res = urllib.request.urlopen(url=settings.ZALO_URL_GET_STATUS, data=urllib.parse.urlencode(params).encode())
+    result = json.loads(res.read())
+
+    return result
+
+
+class ZaloGetStatusByTransId(APIView):
+    def get(self, request):
+        app_trans_id = request.query_params.get('apptransid')
+        app_id = request.query_params.get('appid')
+        amount = request.query_params.get('amount')
+        pstatus = request.query_params.get('status')
+
+        if app_trans_id is not None and app_id is not None:
+            result = getZaloStatusPayment(app_id=app_id, trans_id=app_trans_id)
+
+            return_code = result['returncode']
+
+            if pstatus == '1':
+                response = {
+                    "amount": amount,
+                    "returncode": return_code,
+                    "rCode": 0,
+                    "message": 'Success'
+                }
+            else:
+                response = {
+                    "amount": amount,
+                    "returncode": return_code,
+                    "rCode": 1,
+                    "message": 'Failed'
+                }
+            return Response(response, status=status.HTTP_200_OK)
+
+        return Response({'message': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
+# End Zalo Payment Function

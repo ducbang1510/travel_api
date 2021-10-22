@@ -22,5 +22,8 @@ urlpatterns = [
     path('oauth2-info/', views.AuthInfo.as_view()),
     path('momo-payment/', views.MomoPayment.as_view(), name='momo-payment'),
     path('momo-confirm-payment/', views.MomoConfirmPayment.as_view(), name='momo-confirm-payment'),
+    path('zalopay-payment/', views.ZaloPayment.as_view(), name='zalo-payment'),
+    path('callback/', views.ZaloCallBack.as_view(), name='zalo-callback'),
+    path('zalopay-confirm/', views.ZaloGetStatusByTransId.as_view(), name='zalo-confirm'),
     path('reset-password/', include('django_rest_passwordreset.urls', namespace='reset-password')),
 ]
