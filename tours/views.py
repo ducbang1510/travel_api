@@ -422,7 +422,9 @@ class AuthInfo(APIView):
     def get(self, request):
         return Response(settings.OAUTH2_INFO, status=status.HTTP_200_OK)
 
-
+# Test on webhooks
+# ZaloPay: http://127.0.0.1:8000/zalo-callback/
+# MomoPay: http://127.0.0.1:8000/momo-confirm-payment/
 # Momo Payment Function
 secret_key = settings.MOMO_SECRET_KEY
 access_key = settings.MOMO_ACCESS_KEY
@@ -488,7 +490,7 @@ class MomoPayment(APIView):
             pay_url = json.loads(res)['payUrl']
 
             response = {
-                "payUrl": pay_url,
+                "orderUrl": pay_url,
             }
 
             return Response(response, status=status.HTTP_200_OK)
@@ -591,9 +593,11 @@ class MomoConfirmPayment(APIView):
             else:
                 if result_code == "0":
                     mess += "Payment success"
+                    print(mess)
                     r_code = 0
                 else:
                     mess += "Payment failed"
+                    print(mess)
                     r_code = 1
 
             subject = 'Thông báo đơn đặt tour'
