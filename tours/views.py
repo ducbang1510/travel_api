@@ -445,8 +445,9 @@ class MomoPayment(APIView):
             ipn_url = settings.IPN_URL
             order_id = str(uuid.uuid4())
             amount = str(total_amount)
-            order_info = "Đơn đặt tour %s-TourID:%s-PayerID:%s" % (datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-                                                                   tour_id, payer_id)
+            order_info = "Đơn đặt tour %s-TourID:%s-PayerID:%s-InvID:%s" % (
+                datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                tour_id, payer_id, invoice_id)
             request_id = str(uuid.uuid4())
             extra_data = ""
 
@@ -582,16 +583,21 @@ class MomoConfirmPayment(APIView):
             mess = ""
             r_code = -1
 
-            payer_id = int(order_info[order_info.find('PayerID:') + 8: len(order_info)])
+            payer_id = int(order_info[order_info.find('PayerID:') + 8: order_info.find('-InvID')])
             payer = Payer.objects.get(pk=payer_id)
             tour_id = int(order_info[order_info.find('TourID:') + 7: order_info.find('-PayerID')])
             tour = Tour.objects.get(pk=tour_id)
+            invoice_id = int(order_info[order_info.find('InvID:') + 6: len(order_info)])
+            invoice = Invoice.objects.get(pk=invoice_id)
             order_date = date.today().strftime("%d/%m/%Y")
 
             if signature != request.data.get('signature'):
                 mess = "Signature of request is invalid"
             else:
                 if result_code == "0":
+                    if invoice:
+                        invoice.status_payment = 1
+                        invoice.save()
                     mess += "Payment success"
                     print(mess)
                     r_code = 0
