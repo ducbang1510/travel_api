@@ -297,7 +297,7 @@ class BlogViewSet(viewsets.ViewSet, generics.ListAPIView,
                                                           blog=self.get_object(),
                                                           defaults={"type": action_type})
             if action_user:
-                count_like = Blog.objects.get(pk=pk).actions.filter(type=1).count()
+                count_like = Blog.objects.get(pk=pk).actions.filter(type=0).count()
                 Blog.objects.filter(pk=pk).update(likes=count_like)
 
             return Response(ActionSerializer(action_user).data,
@@ -365,14 +365,18 @@ class PayerViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.RetrieveAP
     @action(methods=['post'], detail=True, url_path="add-customer")
     def add_customer(self, request, pk):
         name = request.data.get('name')
+        age = request.data.get('age')
         gender = request.data.get('gender')
         email = request.data.get('email')
         phone = request.data.get('phone')
         address = request.data.get('address')
+        age_type = 0
 
-        if name and gender and phone and address and email:
-            c = Customer.objects.create(name=name, gender=gender, address=address, phone=phone, email=email,
-                                        payer=self.get_object())
+        if name and age and gender and phone and address and email:
+            if age == 'Trẻ em':
+                age_type = 1
+            c = Customer.objects.create(name=name, age=age_type, gender=gender, address=address,
+                                        phone=phone, email=email, payer=self.get_object())
 
             return Response(CustomerSerializer(c).data,
                             status=status.HTTP_201_CREATED)
