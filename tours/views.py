@@ -99,25 +99,6 @@ class TourViewSet(viewsets.ModelViewSet):
 
         return [permissions.AllowAny()]
 
-    @swagger_auto_schema(
-        operation_description='This API for hide tour from client',
-        response={
-            status.HTTP_200_OK: TourSerializer()
-        }
-    )
-    @action(methods=['post'], detail=True,
-            url_name='hide-tour',
-            url_path='hide-tour')
-    def hide_tour(self, request, pk=None):
-        try:
-            t = Tour.objects.get(pk=pk)
-            t.active = False
-            t.save()
-        except Tour.DoesNotExist:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(data=TourSerializer(t, context={'request': request}).data, status=status.HTTP_200_OK)
-
     @action(methods=['post'], detail=True, url_path='update-slots')
     def update_slots(self, request, pk):
         try:
