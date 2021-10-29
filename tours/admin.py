@@ -128,11 +128,12 @@ class InvoiceAdmin(admin.ModelAdmin):
 
 
 class TravelWebAdminSite(admin.AdminSite):
-    site_header = 'Hệ thống quản lý web du lịch'
+    site_header = 'Travio Administration'
+    site_title = 'Travio Site Admin'
 
     def get_urls(self):
         return [
-            path('stats/', self.tour_stats)
+            path('stats/', self.admin_view(self.tour_stats))
         ] + super().get_urls()
 
     def tour_stats(self, request):

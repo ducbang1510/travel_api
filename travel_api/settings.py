@@ -200,6 +200,8 @@ ZALO_KEY2 = config('ZALO_KEY2', default='')
 ZALO_URL_CREATE = config('ZALO_URL_CREATE', default='')
 ZALO_URL_GET_STATUS = config('ZALO_URL_GET_STATUS', default='')
 
+LOGIN_URL = '/admin/login/'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
