@@ -47,6 +47,7 @@ class Tour(models.Model):
     duration = models.CharField(max_length=50, null=True)
     rating = models.FloatField(null=True, blank=True)
     price_of_tour = models.FloatField(null=False, blank=False)
+    price_of_tour_child = models.FloatField(null=False, default=0)
     price_of_room = models.FloatField(null=False, blank=False)
     description = RichTextField(default=None, null=True)
     slots = models.IntegerField(default=0, null=True)

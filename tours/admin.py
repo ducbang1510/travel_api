@@ -32,7 +32,7 @@ class TourImageInlineAdmin(admin.StackedInline):
 class TourAdmin(admin.ModelAdmin):
     form = TourForm
     list_display = ['tour_name', 'departure', 'depart_date', 'duration', 'created_date', 'price_of_tour',
-                    'price_of_room', 'active', 'category']
+                    'price_of_tour_child', 'price_of_room', 'active', 'category']
     search_fields = ['tour_name', 'departure', 'depart_date', 'price_of_tour', 'category__name']
     list_filter = ['departure', 'depart_date', 'category', 'rating']
     inlines = [TourServiceInlineAdmin, TourImageInlineAdmin, ]
