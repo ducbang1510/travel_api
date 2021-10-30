@@ -34,6 +34,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1', cast=Csv())
 # Application definition
 
 INSTALLED_APPS = [
+    'admin_menu',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,6 +51,15 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_rest_passwordreset',
 ]
+
+MENU_WEIGHT = {
+    'Manage Tours': 4,
+    'Manage Blogs': 5,
+    'Manage FeedBack': 6,
+    'Manage Invoices And Payment Information': 7,
+    'Manage Staffs': 8,
+    'Manage Users': 9,
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

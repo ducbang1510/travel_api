@@ -30,6 +30,8 @@ class TourImageInlineAdmin(admin.StackedInline):
 
 
 class TourAdmin(admin.ModelAdmin):
+    menu_title = "List Of Tours"
+    menu_group = "Manage Tours"
     form = TourForm
     list_display = ['tour_name', 'departure', 'depart_date', 'duration', 'created_date', 'price_of_tour',
                     'price_of_tour_child', 'price_of_room', 'active', 'category']
@@ -40,6 +42,8 @@ class TourAdmin(admin.ModelAdmin):
 
 
 class TourImageAdmin(admin.ModelAdmin):
+    menu_title = 'Images Of Tours'
+    menu_group = 'Manage Tours'
     list_per_page = 10
     readonly_fields = ['picture']
     search_fields = ['tour__tour_name']
@@ -57,6 +61,8 @@ class BlogForm(forms.ModelForm):
 
 
 class BlogAdmin(admin.ModelAdmin):
+    menu_title = 'Blogs And News'
+    menu_group = 'Manage Blogs'
     form = BlogForm
 
     list_display = ['title', 'author', 'created_date']
@@ -74,6 +80,8 @@ class CommentForm(forms.ModelForm):
 
 
 class CommentAdmin(admin.ModelAdmin):
+    menu_title = 'Comments'
+    menu_group = 'Manage FeedBack'
     list_display = ['content', 'created_date', 'user']
     list_filter = ['created_date']
     search_fields = ['content', 'user__username', 'blog__title', 'tour__tour_name']
@@ -82,6 +90,8 @@ class CommentAdmin(admin.ModelAdmin):
 
 
 class RatingAdmin(admin.ModelAdmin):
+    menu_title = 'Rating Of Users'
+    menu_group = 'Manage FeedBack'
     list_display = ['tour', 'rate', 'user', 'updated_date']
     list_filter = ['rate', 'updated_date']
     search_fields = ['tour__tour_name', 'user__username']
@@ -89,6 +99,8 @@ class RatingAdmin(admin.ModelAdmin):
 
 
 class ActionAdmin(admin.ModelAdmin):
+    menu_title = 'Likes Of Blogs'
+    menu_group = 'Manage FeedBack'
     list_display = ['blog', 'type', 'user', 'updated_date']
     list_filter = ['type', 'updated_date']
     search_fields = ['blog__title', 'user__username']
@@ -102,6 +114,8 @@ class CustomerForm(forms.ModelForm):
 
 
 class CustomerAdmin(admin.ModelAdmin):
+    menu_title = 'Customers (Passengers)'
+    menu_group = 'Manage Invoices And Payment Information'
     list_display = ['name', 'gender', 'email', 'phone']
     form = CustomerForm
     search_fields = ['name', 'email', 'address']
@@ -109,22 +123,61 @@ class CustomerAdmin(admin.ModelAdmin):
 
 
 class PayerAdmin(admin.ModelAdmin):
+    menu_title = 'Payers'
+    menu_group = 'Manage Invoices And Payment Information'
     list_display = ['name', 'email', 'phone']
     search_fields = ['name', 'email', 'phone', 'address']
     list_per_page = 10
 
 
 class StaffAdmin(admin.ModelAdmin):
+    menu_title = 'Staffs'
+    menu_group = 'Manage Staffs'
     list_per_page = 10
     list_display = ['name', 'gender', 'date_of_birth', 'email', 'phone']
     search_fields = ['name', 'email', 'phone']
 
 
 class InvoiceAdmin(admin.ModelAdmin):
+    menu_title = 'Invoices'
+    menu_group = 'Manage Invoices And Payment Information'
     list_per_page = 10
     list_display = ['tour', 'payer', 'total_amount', 'created_date']
     list_filter = ['created_date', 'total_amount']
     search_fields = ['tour__tour_name', 'payer__name']
+
+
+class ServiceAdmin(admin.ModelAdmin):
+    menu_title = 'Services Of Tours'
+    menu_group = 'Manage Tours'
+    list_per_page = 10
+    list_display = ['id', 'name']
+    search_fields = ['name']
+
+
+class CategoryAdmin(admin.ModelAdmin):
+    menu_title = 'Categories Of Tours'
+    menu_group = 'Manage Tours'
+    list_per_page = 10
+    list_display = ['id', 'name']
+    search_fields = ['name']
+
+
+class CountryAdmin(admin.ModelAdmin):
+    menu_title = 'Countries Of Tours'
+    menu_group = 'Manage Tours'
+    list_per_page = 10
+    list_display = ['id', 'name']
+    search_fields = ['name']
+
+
+class UserAdmin(admin.ModelAdmin):
+    menu_title = 'Users'
+    menu_group = 'Manage Users'
+    list_per_page = 10
+    list_display = ["id", "first_name", "last_name", "username", "email", "date_joined"]
+    search_fields = ['first_name', 'last_name', 'username', 'email']
+    list_filter = ['date_joined']
 
 
 class TravelWebAdminSite(admin.AdminSite):
@@ -179,14 +232,14 @@ admin_site.register(Tour, TourAdmin)
 admin_site.register(Customer, CustomerAdmin)
 admin_site.register(Staff, StaffAdmin)
 admin_site.register(TourImage, TourImageAdmin)
-admin_site.register(Service)
-admin_site.register(Category)
-admin_site.register(Country)
+admin_site.register(Service, ServiceAdmin)
+admin_site.register(Category, CategoryAdmin)
+admin_site.register(Country, CountryAdmin)
 admin_site.register(Invoice, InvoiceAdmin)
 admin_site.register(Payer, PayerAdmin)
 admin_site.register(Blog, BlogAdmin)
 admin_site.register(Comment, CommentAdmin)
 admin_site.register(Rating, RatingAdmin)
 admin_site.register(Action, ActionAdmin)
-admin_site.register(User)
+admin_site.register(User, UserAdmin)
 admin_site.register(Permission)
