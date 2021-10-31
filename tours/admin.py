@@ -180,6 +180,10 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = ['date_joined']
 
 
+class PermissionAdmin(admin.ModelAdmin):
+    menu_group = 'Manage Users'
+
+
 class TravelWebAdminSite(admin.AdminSite):
     site_header = 'Travio Administration'
     site_title = 'Travio Site Admin'
@@ -242,4 +246,4 @@ admin_site.register(Comment, CommentAdmin)
 admin_site.register(Rating, RatingAdmin)
 admin_site.register(Action, ActionAdmin)
 admin_site.register(User, UserAdmin)
-admin_site.register(Permission)
+admin_site.register(Permission, PermissionAdmin)
