@@ -56,7 +56,7 @@ MENU_WEIGHT = {
     'Manage Tours': 4,
     'Manage Blogs': 5,
     'Manage FeedBack': 6,
-    'Manage Invoices And Payment Information': 7,
+    'Manage Payment Info': 7,
     'Manage Staffs': 8,
     'Manage Users': 9,
 }

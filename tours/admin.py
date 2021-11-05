@@ -115,7 +115,7 @@ class CustomerForm(forms.ModelForm):
 
 class CustomerAdmin(admin.ModelAdmin):
     menu_title = 'Customers (Passengers)'
-    menu_group = 'Manage Invoices And Payment Information'
+    menu_group = 'Manage Payment Info'
     list_display = ['name', 'gender', 'email', 'phone']
     form = CustomerForm
     search_fields = ['name', 'email', 'address']
@@ -124,7 +124,7 @@ class CustomerAdmin(admin.ModelAdmin):
 
 class PayerAdmin(admin.ModelAdmin):
     menu_title = 'Payers'
-    menu_group = 'Manage Invoices And Payment Information'
+    menu_group = 'Manage Payment Info'
     list_display = ['name', 'email', 'phone']
     search_fields = ['name', 'email', 'phone', 'address']
     list_per_page = 10
@@ -140,7 +140,7 @@ class StaffAdmin(admin.ModelAdmin):
 
 class InvoiceAdmin(admin.ModelAdmin):
     menu_title = 'Invoices'
-    menu_group = 'Manage Invoices And Payment Information'
+    menu_group = 'Manage Payment Info'
     list_per_page = 10
     list_display = ['tour', 'payer', 'total_amount', 'created_date']
     list_filter = ['created_date', 'total_amount']
