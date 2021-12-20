@@ -411,6 +411,8 @@ class AuthInfo(APIView):
 # ZaloPay: http://127.0.0.1:8000/zalo-callback/
 # MomoPay: http://127.0.0.1:8000/momo-confirm-payment/
 # Momo Payment Function
+
+
 secret_key = settings.MOMO_SECRET_KEY
 access_key = settings.MOMO_ACCESS_KEY
 
@@ -710,7 +712,7 @@ if deploy to server add url callback /%url-host%/zalo-callback
 
 If test in localhost
 Get data callback from ZaloPay server from middle server test 
-https://webhook.site/15e83871-255c-47f6-8868-32bf60fe4200 (create in webhook) config on zalo merchant
+https://webhook.site/de7e352f-0e7f-494d-83fc-349bd316b657 (create in webhook) config on zalo merchant
 """
 
 
