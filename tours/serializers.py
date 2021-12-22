@@ -135,7 +135,7 @@ class BlogSerializer(ModelSerializer):
     type = SerializerMethodField()
     content = SerializerMethodField()
 
-    def get_type(self, blog):
+    def get_type(self, blog):   # Get type of action
         request = self.context.get("request")
         if request and request.user.is_authenticated:
             t = blog.actions.filter(user=request.user).first()
