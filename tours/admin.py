@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.auth.models import Permission
 from django.template.response import TemplateResponse
 from django.utils.safestring import mark_safe
-from ckeditor_uploader.widgets import CKEditorUploadingWidget
+from django_ckeditor_5.widgets import CKEditor5Widget
 import calendar
 
 from .models import *
@@ -12,8 +12,8 @@ from .utils import report_invoice
 
 
 class TourForm(forms.ModelForm):
-    tour_plan = forms.CharField(widget=CKEditorUploadingWidget)
-    description = forms.CharField(widget=CKEditorUploadingWidget)
+    tour_plan = forms.CharField(widget=CKEditor5Widget)
+    description = forms.CharField(widget=CKEditor5Widget)
 
     class Meta:
         model = Tour
@@ -53,7 +53,7 @@ class TourImageAdmin(admin.ModelAdmin):
 
 
 class BlogForm(forms.ModelForm):
-    content = forms.CharField(widget=CKEditorUploadingWidget)
+    content = forms.CharField(widget=CKEditor5Widget)
 
     class Meta:
         model = Blog
@@ -72,7 +72,7 @@ class BlogAdmin(admin.ModelAdmin):
 
 
 class CommentForm(forms.ModelForm):
-    content = forms.CharField(widget=CKEditorUploadingWidget)
+    content = forms.CharField(widget=CKEditor5Widget)
 
     class Meta:
         model = Comment

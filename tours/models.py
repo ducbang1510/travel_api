@@ -1,4 +1,3 @@
-from ckeditor.fields import RichTextField
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -41,7 +40,7 @@ class Tour(models.Model):
         ordering = ["-id"]
 
     tour_name = models.CharField(max_length=255, null=False)
-    tour_plan = RichTextField(default=None, null=True)
+    tour_plan = models.TextField(default=None, null=True)
     departure = models.CharField(max_length=255, null=True)
     depart_date = models.DateField(null=True, blank=True)
     duration = models.CharField(max_length=50, null=True)
@@ -49,7 +48,7 @@ class Tour(models.Model):
     price_of_tour = models.FloatField(null=False, blank=False)
     price_of_tour_child = models.FloatField(null=False, default=0)
     price_of_room = models.FloatField(null=False, blank=False)
-    description = RichTextField(default=None, null=True)
+    description = models.TextField(default=None, null=True)
     slots = models.IntegerField(default=0, null=True)
     image = models.ImageField(upload_to='images/tours/%Y/%m', default=None)
     banner = models.ImageField(upload_to='images/tour_banners/%Y/%m', default=None)
@@ -102,7 +101,7 @@ class Blog(models.Model):
     title = models.CharField(max_length=255, null=False, unique=True)
     image = models.ImageField(upload_to='images/blogs/%Y/%m', default=None)
     author = models.CharField(max_length=100, null=True, default=None)
-    content = RichTextField()
+    content = models.TextField()
     likes = models.IntegerField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
@@ -115,7 +114,7 @@ class Comment(models.Model):
     class Meta:
         ordering = ["-id"]
 
-    content = RichTextField()
+    content = models.TextField()
     created_date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, related_name="comments", on_delete=models.CASCADE, null=True)
     blog = models.ForeignKey(Blog, related_name="comments", on_delete=models.CASCADE, null=True)
